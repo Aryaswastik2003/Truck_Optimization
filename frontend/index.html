@@ -1,1022 +1,428 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Packaging Asset Design - Truck Optimization</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: #333;
-        }
-
-        .navbar {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 1rem 2rem;
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #4f46e5;
-        }
-
-        .auth-buttons {
-            display: flex;
-            gap: 1rem;
-        }
-
-        .btn {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-            text-align: center;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #4f46e5, #7c3aed);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(79, 70, 229, 0.3);
-        }
-
-        .btn-secondary {
-            background: transparent;
-            color: #4f46e5;
-            border: 2px solid #4f46e5;
-        }
-
-        .btn-secondary:hover {
-            background: #4f46e5;
-            color: white;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 2rem;
-        }
-
-        .card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 2rem;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            margin-bottom: 2rem;
-        }
-
-        .form-section {
-            margin-bottom: 2rem;
-        }
-
-        .section-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #1f2937;
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .section-title::before {
-            content: '';
-            width: 4px;
-            height: 24px;
-            background: linear-gradient(135deg, #4f46e5, #7c3aed);
-            border-radius: 2px;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-label {
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 0.5rem;
-        }
-
-        .form-input, .form-select {
-            padding: 0.75rem;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-
-        .form-input:focus, .form-select:focus {
-            outline: none;
-            border-color: #4f46e5;
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-        }
-
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
-        }
-
-        .checkbox-group input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            accent-color: #4f46e5;
-        }
-
-        .route-percentages {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-            margin-top: 0.5rem;
-        }
-
-        .percentage-input {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            flex: 1;
-        }
-
-        .percentage-input input {
-            width: 80px;
-        }
-
-        .truck-config {
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 1.5rem;
-            background: #f9fafb;
-            position: relative;
-        }
-
-        .truck-header {
-            display: flex;
-            justify-content: between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-
-        .truck-title {
-            font-weight: 600;
-            color: #1f2937;
-        }
-
-        .add-truck-btn {
-            background: #10b981;
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            margin-top: 1rem;
-        }
-
-        .add-truck-btn:hover {
-            background: #059669;
-        }
-
-        .analyze-btn {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-            padding: 1rem 3rem;
-            border: none;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin: 2rem auto;
-            display: block;
-        }
-
-        .analyze-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
-        }
-
-        .analyze-btn:disabled {
-            background: #9ca3af;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .loading-spinner {
-            display: none;
-            width: 24px;
-            height: 24px;
-            border: 3px solid #ffffff;
-            border-top: 3px solid transparent;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-right: 0.5rem;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .results-section {
-            display: none;
-            margin-top: 2rem;
-        }
-
-        .recommendation-card {
-            border: 2px solid #e5e7eb;
-            border-radius: 16px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
-            transition: all 0.3s ease;
-        }
-
-        .recommendation-card:hover {
-            border-color: #4f46e5;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        }
-
-        .recommendation-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-
-        .recommendation-title {
-            font-weight: 700;
-            color: #1f2937;
-            font-size: 1.2rem;
-        }
-
-        .cost-badge {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-
-        .recommendation-details {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-        }
-
-        .detail-item {
-            background: white;
-            padding: 1rem;
-            border-radius: 8px;
-            border-left: 4px solid #4f46e5;
-        }
-
-        .detail-label {
-            font-weight: 600;
-            color: #6b7280;
-            font-size: 0.9rem;
-            margin-bottom: 0.25rem;
-        }
-
-        .detail-value {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: #1f2937;
-        }
-
-        .error-message {
-            background: #fef2f2;
-            color: #dc2626;
-            padding: 1rem;
-            border-radius: 8px;
-            border: 1px solid #fecaca;
-            margin: 1rem 0;
-            display: none;
-        }
-
-        .success-message {
-            background: #f0fdf4;
-            color: #166534;
-            padding: 1rem;
-            border-radius: 8px;
-            border: 1px solid #bbf7d0;
-            margin: 1rem 0;
-            display: none;
-        }
-
-        .reset-btn {
-            background: #6b7280;
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            margin-left: 1rem;
-        }
-
-        .reset-btn:hover {
-            background: #4b5563;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 0 1rem;
-            }
-            
-            .navbar {
-                padding: 1rem;
-            }
-            
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .route-percentages {
-                flex-direction: column;
-                align-items: stretch;
-            }
-        }
-    </style>
-</head>
-<body>
-    
-    <div class="container">
-        <div class="card">
-            <div class="section-title">Maximize Truck Load</div>
-            
-            <form id="packagingForm">
-
-
-                <div class="form-section">
-                    <h3 style="margin-bottom: 1rem; color: #374151;"> Outer Box Details</h3>
-                    <div id="customBoxes">
-                        <div class="truck-config">
-                            <div class="truck-header">
-                                <div class="truck-title">Box 1</div>
-                            </div>
-                            <div class="form-grid">
-                                <div class="form-group">
-                                    <label class="form-label">Outer Box Type</label>
-                                    <select class="form-select" name="boxType">
-                                        <option value="PLS">PLS</option>
-                                        <option value="FLC">FLC</option>
-                                        <option value="Foldable Crate">Foldable Crate</option>
-                                        <option value="PP Box">PP Box</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">No. of boxes (Optional)</label>
-                                    <input type="number" class="form-input" name="boxQuantity" placeholder="Quantity" min="1">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">External Length (mm)</label>
-                                    <input type="number" class="form-input" name="boxLength" value="1200" min="100" max="5000">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">External Width (mm)</label>
-                                    <input type="number" class="form-input" name="boxWidth" value="800" min="100" max="5000">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">External Height (mm)</label>
-                                    <input type="number" class="form-input" name="boxHeight" value="1000" min="100" max="5000">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Max Payload (kg)</label>
-                                    <input type="number" class="form-input" name="boxPayload" value="600" min="50" max="2000">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <button type="button" class="add-truck-btn" onclick="addCustomBox()">+ Add Another Box Type</button>
-                </div>
-                
-                  <div class="form-section">
-                    <h3 style="margin-bottom: 1rem; color: #374151;">Operational Constraints</h3>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label class="form-label">Max Manual Lift Weight (kg)</label>
-                            <input type="number" class="form-input" id="maxLiftWeight" value="25" min="1" max="100">
-                        </div>
-                        <div class="form-group">
-                            <div class="checkbox-group">
-                                <input type="checkbox" id="forkliftAvailable" checked>
-                                <label for="forkliftAvailable">Forklift Available</label>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <div class="checkbox-group">
-                                <input type="checkbox" id="stackingAllowed" checked>
-                                <label for="stackingAllowed">Stacking Allowed</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-
-                <form id="packagingForm">
-                <div class="form-section">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label class="form-label">Source City</label>
-                            <input type="text" class="form-input" id="sourceCity" placeholder="e.g., Jaipur" required>
-                        </div>
-                    </div>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label class="form-label">Destination City</label>
-                            <input type="text" class="form-input" id="destinationCity" placeholder="e.g., Patna" required>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Route Type Distribution</label>
-                        <div class="route-percentages">
-                            <div class="checkbox-group">
-                                <input type="checkbox" id="highway" checked>
-                                <label for="highway">Highway</label>
-                                <div class="percentage-input">
-                                    <input type="number" class="form-input" id="highwayPercent" value="50" min="0" max="100">
-                                    <span>%</span>
-                                </div>
-                            </div>
-                            <div class="checkbox-group">
-                                <input type="checkbox" id="semiUrban" checked>
-                                <label for="semiUrban">Semi-Urban</label>
-                                <div class="percentage-input">
-                                    <input type="number" class="form-input" id="semiUrbanPercent" value="50" min="0" max="100">
-                                    <span>%</span>
-                                </div>
-                            </div>
-                            <div class="checkbox-group">
-                                <input type="checkbox" id="village">
-                                <label for="village">Village</label>
-                                <div class="percentage-input">
-                                    <input type="number" class="form-input" id="villagePercent" value="0" min="0" max="100">
-                                    <span>%</span>
-                                </div>
-                            </div>
-                        </div>
-                        <small style="color: #6b7280; margin-top: 0.5rem; display: block;">Select route types and their distribution percentages for transportation planning.</small>
-                    </div>
-                </div>
-
-
-                <div class="form-section">
-                    <h3 style="margin-bottom: 1rem; color: #374151;">Custom Truck Configuration</h3>
-                    <div id="customTrucks">
-                        </div>
-                    <button type="button" class="add-truck-btn" onclick="addCustomTruck()">+ Add Custom Truck</button>
-                </div>
-
-                <div class="error-message" id="errorMessage"></div>
-                <div class="success-message" id="successMessage"></div>
-
-                <div style="text-align: center; margin-top: 2rem;">
-                    <button type="submit" class="analyze-btn" id="analyzeBtn">
-                        <span class="loading-spinner" id="loadingSpinner"></span>
-                        <span id="analyzeText">🚚 Optimize Truck Load</span>
-                    </button>
-                    <button type="button" class="reset-btn" onclick="resetForm()">Reset</button>
-                </div>
-            </form>
-        </div>
-
-        <div class="results-section" id="resultsSection">
-            <div class="card">
-                <div class="section-title">📊 Optimization Results</div>
-                <div id="recommendationsContainer">
-                    </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Global variables
-        let customBoxCount = 1;
-        let customTruckCount = 0;
-        const API_BASE_URL = 'http://localhost:8000/api';
-
-        // Form validation and submission
-        document.getElementById('packagingForm').addEventListener('submit', handleFormSubmit);
-
-        async function handleFormSubmit(e) {
-            e.preventDefault();
-            
-            const btn = document.getElementById('analyzeBtn');
-            const spinner = document.getElementById('loadingSpinner');
-            const text = document.getElementById('analyzeText');
-            
-            // Show loading state
-            btn.disabled = true;
-            spinner.style.display = 'inline-block';
-            text.textContent = 'Analyzing...';
-            
-            try {
-                const formData = collectFormData();
-                const recommendations = await getRecommendations(formData);
-                displayRecommendations(recommendations);
-                showSuccessMessage('Analysis completed successfully!');
-            } catch (error) {
-                showErrorMessage(error.message);
-                console.error('Analysis error:', error);
-            } finally {
-                // Reset button state
-                btn.disabled = false;
-                spinner.style.display = 'none';
-                text.textContent = '🚚 Optimize Truck Load';
-            }
-        }
-
-        function collectFormData() {
-            // Collect route percentages
-            const routeTypes = {};
-            if (document.getElementById('highway').checked) {
-                routeTypes.highway = parseFloat(document.getElementById('highwayPercent').value) / 100;
-            }
-            if (document.getElementById('semiUrban').checked) {
-                routeTypes['semi-urban'] = parseFloat(document.getElementById('semiUrbanPercent').value) / 100;
-            }
-            if (document.getElementById('village').checked) {
-                routeTypes.village = parseFloat(document.getElementById('villagePercent').value) / 100;
-            }
-
-            // Validate route percentages sum to 100%
-            const totalPercentage = Object.values(routeTypes).reduce((sum, val) => sum + val, 0);
-            if (Math.abs(totalPercentage - 1.0) > 0.01 && totalPercentage > 0) {
-                 throw new Error('Route type percentages must sum to 100%');
-            }
-
-
-            // Collect custom trucks
-            const customTrucks = [];
-            document.querySelectorAll('.truck-config[data-type="truck"]').forEach((truckElement, index) => {
-                const name = truckElement.querySelector('[name="truckName"]').value;
-                const length = parseFloat(truckElement.querySelector('[name="truckLength"]').value);
-                const width = parseFloat(truckElement.querySelector('[name="truckWidth"]').value);
-                const height = parseFloat(truckElement.querySelector('[name="truckHeight"]').value);
-                const payload = parseFloat(truckElement.querySelector('[name="truckPayload"]').value);
-
-                if (name && length && width && height && payload) {
-                    customTrucks.push({
-                        name: name,
-                        length: length,
-                        width: width,
-                        height: height,
-                        max_payload: payload
-                    });
-                }
-            });
-
-            // This section was missing in the original code, causing a ReferenceError.
-            // It is assumed based on the function usage.
-            // If these fields do not exist, they should be added to the HTML.
-            // For now, providing dummy values or checking for existence.
-            const partLength = document.getElementById('partLength') ? parseFloat(document.getElementById('partLength').value) : 0;
-            const partWidth = document.getElementById('partWidth') ? parseFloat(document.getElementById('partWidth').value) : 0;
-            const partHeight = document.getElementById('partHeight') ? parseFloat(document.getElementById('partHeight').value) : 0;
-            const partWeight = document.getElementById('partWeight') ? parseFloat(document.getElementById('partWeight').value) : 0;
-            const fragility = document.getElementById('fragility') ? document.getElementById('fragility').value : 'medium';
-            const quantity = document.getElementById('quantity') ? parseInt(document.getElementById('quantity').value) : 1000;
-
-
-            return {
-                part_dimensions: {
-                    length: partLength,
-                    width: partWidth,
-                    height: partHeight
-                },
-                part_weight: partWeight,
-                fragility: fragility,
-                quantity_per_month: quantity,
-                route_details: {
-                    source_city: document.getElementById('sourceCity').value,
-                    destination_city: document.getElementById('destinationCity').value,
-                    route_types: routeTypes
-                },
-                forklift_available: document.getElementById('forkliftAvailable').checked,
-                stacking_allowed: document.getElementById('stackingAllowed').checked,
-                max_lift_weight: parseFloat(document.getElementById('maxLiftWeight').value),
-                custom_trucks: customTrucks.length > 0 ? customTrucks : null
-            };
-        }
-
-        async function getRecommendations(formData) {
-            const response = await fetch(`${API_BASE_URL}/recommend`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(formData)
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.detail || 'Failed to get recommendations');
-            }
-
-            return await response.json();
-        }
-        function createRecommendationCard(recommendation, index) {
-    const card = document.createElement('div');
-    card.className = 'recommendation-card';
-
-    // Safe access with optional chaining
-    const boxRec = recommendation.box_recommendation || {};
-    const costAnalysis = recommendation.cost_analysis || {};
-    const insertPattern = recommendation.insert_pattern || {};
-    const truckOpts = recommendation.truck_optimizations || [];
-
-    const boxType = boxRec.box_type || 'N/A';
-    const extLength = boxRec.external_length || 0;
-    const extWidth = boxRec.external_width || 0;
-    const extHeight = boxRec.external_height || 0;
-    const boxCost = boxRec.cost_per_box || 0;
-
-    const costPerPart = costAnalysis.cost_per_part_per_trip || 0;
-    const co2PerPart = costAnalysis.co2_per_part_per_trip || 0;
-
-    const partsPerInsert = insertPattern.parts_per_insert || 0;
-    const stackingLayers = insertPattern.stacking_layers || 0;
-
-    const isRecommended = index === 0;
-    const badgeText = isRecommended ? 'RECOMMENDED' : `OPTION ${index + 1}`;
-    const badgeColor = isRecommended ? '#10b981' : '#6b7280';
-
-    // Find best truck utilization
-    let bestTruck = { truck_name: 'N/A', volume_utilization: 0 };
-    if (truckOpts.length > 0) {
-        bestTruck = truckOpts.reduce((prev, curr) => {
-            return (curr.volume_utilization || 0) > (prev.volume_utilization || 0) ? curr : prev;
-        }, truckOpts[0]);
-    }
-
-    card.innerHTML = `
-        <div class="recommendation-header">
-            <div class="recommendation-title">
-                ${boxType} - ${Math.round(extLength)}×${Math.round(extWidth)}×${Math.round(extHeight)}mm
-            </div>
-            <div class="cost-badge" style="background: linear-gradient(135deg, ${badgeColor}, ${badgeColor}dd);">
-                ${badgeText}
-            </div>
-        </div>
-        
-        <div class="recommendation-details">
-            <div class="detail-item">
-                <div class="detail-label">Cost per Part per Trip</div>
-                <div class="detail-value">₹${costPerPart}</div>
-            </div>
-            
-            <div class="detail-item">
-                <div class="detail-label">CO₂ per Part per Trip</div>
-                <div class="detail-value">${co2PerPart} kg</div>
-            </div>
-            
-            <div class="detail-item">
-                <div class="detail-label">Parts per Insert</div>
-                <div class="detail-value">${partsPerInsert}</div>
-            </div>
-            
-            <div class="detail-item">
-                <div class="detail-label">Stacking Layers</div>
-                <div class="detail-value">${stackingLayers}</div>
-            </div>
-            
-            <div class="detail-item">
-                <div class="detail-label">Best Truck Utilization</div>
-                <div class="detail-value">
-                    ${bestTruck.volume_utilization || 0}%
-                    (${bestTruck.truck_name})
-                </div>
-            </div>
-            
-            <div class="detail-item">
-                <div class="detail-label">Box Cost</div>
-                <div class="detail-value">₹${boxCost}</div>
-            </div>
-        </div>
-        
-        <details style="margin-top: 1rem;">
-            <summary style="cursor: pointer; font-weight: 600; color: #4f46e5;">View Detailed Truck Analysis</summary>
-            <div style="margin-top: 1rem; display: grid; gap: 1rem;">
-                ${truckOpts.map(truck => `
-                    <div style="background: white; padding: 1rem; border-radius: 8px; border: 1px solid #e5e7eb;">
-                        <div style="font-weight: 600; margin-bottom: 0.5rem;">${truck.truck_name || 'N/A'}</div>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.5rem; font-size: 0.9rem;">
-                            <div><strong>Boxes:</strong> ${truck.boxes_per_truck || 0}</div>
-                            <div><strong>Parts:</strong> ${truck.parts_per_truck || 0}</div>
-                            <div><strong>Volume:</strong> ${truck.volume_utilization || 0}%</div>
-                            <div><strong>Weight:</strong> ${truck.weight_utilization || 0}%</div>
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-        </details>
-    `;
-
-    return card;
+<meta charset="utf-8" />
+<title>🚛 Truck Optimiser — Demo</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+:root{
+  --bg-1:#f7fbf9;
+  --bg-2:#eef6f1;
+  --card:#ffffff;
+  --accent:#16a34a;
+  --accent-2:#10b981;
+  --muted:#6b7280;
+  --panel-shadow:0 8px 30px rgba(2,6,23,0.06);
+  --glass:rgba(255,255,255,0.6);
+  --accent-contrast:#063f2f;
+}
+html,body{height:100%;}
+body{
+  font-family:Inter,sans-serif;
+  background:linear-gradient(135deg,var(--bg-1),var(--bg-2));
+  color:#0f172a;
+  padding:28px;
+  line-height:1.45;
+  margin:0;
 }
 
-          function displayRecommendations(recommendations) {
-              const container = document.getElementById('recommendationsContainer');
-              container.innerHTML = '';
+h2{
+  margin:0 0 12px 0;
+  font-size:18px;
+  font-weight:700;
+  color:var(--accent-contrast);
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
 
-              if (!recommendations || recommendations.length === 0) {
-                  container.innerHTML = '<p>No suitable packaging recommendations found. Please adjust your parameters.</p>';
-                  document.getElementById('resultsSection').style.display = 'block';
-                  return;
-              }
+.card{
+  background:var(--card);
+  border-radius:14px;
+  padding:18px;
+  box-shadow:var(--panel-shadow);
+  margin-bottom:18px;
+  transition:transform .16s ease;
+}
 
-              recommendations.forEach((rec, index) => {
-                  const card = createRecommendationCard(rec, index);
-                  container.appendChild(card);
-              });
+.card.small{padding:12px;border-radius:12px;}
+label{display:block;font-size:13px;margin-bottom:6px;color:var(--muted);font-weight:600;}
+input[type="text"], input[type="number"], select{
+  width:100%;padding:8px 10px;border-radius:10px;border:1px solid #e6eef0;background:#fbfdfb;
+}
+.row{display:flex;gap:12px;flex-wrap:wrap;}
+.col{flex:1;min-width:200px;}
+button{
+  background:linear-gradient(90deg,var(--accent),var(--accent-2));
+  color:white;border:none;padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:700;
+  box-shadow:0 6px 18px rgba(16,185,129,0.14);
+}
+button.secondary{background:#f3f4f6;color:#111;box-shadow:none;border:1px solid #e6eef0;}
+button:disabled{opacity:.6;cursor:wait;}
+.muted{color:var(--muted);font-size:13px;}
+.small{font-size:13px;padding:6px 10px;}
+.box-item{
+  border:1px solid #eef2f7;
+  padding:12px;
+  border-radius:12px;
+  margin-bottom:10px;
+  background:linear-gradient(180deg,#ffffff,#fbfffb);
+  display:flex;flex-direction:column;gap:8px;
+}
+.box-top{display:flex;gap:12px;align-items:center;}
+.box-top .meta{font-size:13px;color:#0f172a;font-weight:600;}
+.dims{font-size:12px;color:var(--muted);margin-top:4px;}
+.results-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;}
+.truck-card{padding:12px;border-radius:10px;background:linear-gradient(180deg,#ffffff,#f7fff7);border:1px solid #ecfdf5;}
+.metric{font-weight:700;font-size:18px;color:var(--accent-contrast);}
+.metric-small{font-size:12px;color:var(--muted);}
+.loader{
+  display:inline-block;width:18px;height:18px;
+  border-radius:50%;
+  border:3px solid rgba(255,255,255,0.2);
+  border-top-color:white;
+  animation:spin 1s linear infinite;
+  margin-right:8px;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.boxes-compact{display:flex;gap:10px;flex-wrap:wrap;}
+.pill{
+  background:linear-gradient(90deg,#ecfdf5,#dcfce7);
+  border:1px solid #bbf7d0;
+  padding:6px 8px;border-radius:999px;font-size:12px;color:#065f46;font-weight:700;
+}
+.note{font-size:12px;color:var(--muted);margin-top:8px;}
+</style>
+</head>
+<body>
 
-              document.getElementById('resultsSection').style.display = 'block';
-              document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
-          }
+<!-- Boxes Section -->
+<div class="card">
+  <h2>📦 Custom Outer Box Details</h2>
+  <div id="boxes"></div>
+  <div style="margin-top:10px;">
+    <button id="addBox" class="small">+ Add Another Box Type</button>
+    <span class="muted" style="margin-left:12px;">Pick from PRD catalogue. Edit qty or payload if needed.</span>
+  </div>
+</div>
 
-        function displayRecommendations(recommendations) {
-        const container = document.getElementById('recommendationsContainer');
-        container.innerHTML = '';
+<!-- Trucks Section -->
+<div class="card">
+  <h2>🛣️ Route & Trucks</h2>
+  <div class="row">
+    <div class="col">
+      <label>Source</label>
+      <input id="source" type="text" placeholder="City or depot" />
+    </div>
+    <div class="col">
+      <label>Destination</label>
+      <input id="dest" type="text" placeholder="City or depot" />
+    </div>
+  </div>
 
-        if (!recommendations) {
-            container.innerHTML = '<p>No suitable packaging recommendations found. Please adjust your parameters.</p>';
-            document.getElementById('resultsSection').style.display = 'block';
-            return;
-        }
+  <div style="margin-top:12px" class="row">
+    <div class="col">
+      <label>Route Type</label>
+      <div style="display:flex; gap:12px; align-items:center;">
+        <label><input type="checkbox" id="highway" /> Highway</label>
+        <label><input type="checkbox" id="semi" /> Semi-Urban</label>
+        <label><input type="checkbox" id="village" /> Village</label>
+      </div>
+    </div>
 
-        // If it's not an array, wrap it in an array
-        const recs = Array.isArray(recommendations) ? recommendations : [recommendations];
+    <div class="col">
+      <label>Custom Trucks (optional)</label>
+      <input id="truckNames" placeholder="22 ft Truck,32 ft Single Axle,32 ft Multi Axle" />
+      <div style="display:flex; gap:8px; margin-top:6px;">
+        <input id="truckDims" placeholder="6700x2440x2440;9750x2440x2440;9750x2440x2440" />
+        <input id="truckPayloads" placeholder="7500,9000,16000" />
+      </div>
+      <div class="note">Leave blank to use default PRD trucks.</div>
+    </div>
+  </div>
+</div>
 
-        if (recs.length === 0) {
-            container.innerHTML = '<p>No suitable packaging recommendations found. Please adjust your parameters.</p>';
-            document.getElementById('resultsSection').style.display = 'block';
-            return;
-        }
+<!-- Action Buttons -->
+<div style="display:flex; gap:14px; margin-bottom:18px;">
+  <button id="optBtn">⚡ Optimize Trucks</button>
+  <button id="resetBtn" class="secondary">Reset</button>
+  <div style="flex:1"></div>
+  <div class="boxes-compact" id="summaryPills"></div>
+</div>
 
-        recs.forEach((rec, index) => {
-            const card = createRecommendationCard(rec, index);
-            container.appendChild(card);
-        });
+<!-- Results Section -->
+<div class="card">
+  <h2>📊 Results</h2>
+  <div id="results" class="muted">No results yet.</div>
+</div>
 
-        // Show results section and scroll to it
-        const resultsSection = document.getElementById('resultsSection');
-        resultsSection.style.display = 'block';
-        resultsSection.scrollIntoView({ behavior: 'smooth' });
-          }
+<script>
+const BOX_CATALOGUE = {
+  "Crate 400x300x120": { dims:[400,300,120], weight:15 },
+  "Crate 400x300x235": { dims:[400,300,235], weight:15 },
+  "Crate 600x400x120": { dims:[600,400,120], weight:15 },
+  "Crate 600x400x180": { dims:[600,400,180], weight:15 },
+  "Crate 600x400x235": { dims:[600,400,235], weight:15 },
+  "Crate 600x400x348": { dims:[600,400,348], weight:15 },
+  "PP Box": { dims:[1900,1200,800], weight:15 },
+  "FLC 1200x1000x595": { dims:[1200,1000,595], weight:800 },
+  "FLC 1200x1000x795": { dims:[1200,1000,795], weight:800 },
+  "FLC 1200x1000x975": { dims:[1200,1000,975], weight:800 },
+  "FLC 1200x1000x1200": { dims:[1200,1000,1200], weight:800 },
+  "PLS 1200x800x450": { dims:[1200,800,450], weight:450 },
+  "PLS 1200x800x650": { dims:[1200,800,650], weight:450 },
+  "PLS 1200x800x800": { dims:[1200,800,800], weight:450 },
+  "PLS 1200x800x1000": { dims:[1200,800,1000], weight:450 },
+  "PLS 1200x800x1100": { dims:[1200,800,1100], weight:450 },
+  "PLS 1200x800x1200": { dims:[1200,800,1200], weight:450 },
+  "PLS 1200x1000x450": { dims:[1200,1000,450], weight:500 },
+  "PLS 1200x1000x650": { dims:[1200,1000,650], weight:500 },
+  "PLS 1200x1000x800": { dims:[1200,1000,800], weight:500 },
+  "PLS 1200x1000x1000": { dims:[1200,1000,1000], weight:500 },
+  "PLS 1200x1000x1100": { dims:[1200,1000,1100], weight:500 },
+  "PLS 1200x1000x1200": { dims:[1200,1000,1200], weight:500 },
+};
 
+const boxesDiv = document.getElementById('boxes');
+const summaryPills = document.getElementById('summaryPills');
 
-        function addCustomBox() {
-            customBoxCount++;
-            const container = document.getElementById('customBoxes');
-            
-            const boxDiv = document.createElement('div');
-            boxDiv.className = 'truck-config';
-            boxDiv.innerHTML = `
-                <div class="truck-header">
-                    <div class="truck-title">Box ${customBoxCount}</div>
-                    <button type="button" onclick="removeCustomBox(this)" style="background: #dc2626; color: white; border: none; padding: 0.25rem 0.5rem; border-radius: 4px; cursor: pointer;">Remove</button>
-                </div>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label class="form-label">Outer Box Type</label>
-                        <select class="form-select" name="boxType">
-                            <option value="PLS">PLS</option>
-                            <option value="FLC">FLC</option>
-                            <option value="Foldable Crate">Foldable Crate</option>
-                            <option value="PP Box">PP Box</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">No. of boxes (Optional)</label>
-                        <input type="number" class="form-input" name="boxQuantity" placeholder="Quantity" min="1">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">External Length (mm)</label>
-                        <input type="number" class="form-input" name="boxLength" value="1200" min="100" max="5000">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">External Width (mm)</label>
-                        <input type="number" class="form-input" name="boxWidth" value="800" min="100" max="5000">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">External Height (mm)</label>
-                        <input type="number" class="form-input" name="boxHeight" value="1000" min="100" max="5000">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Max Payload (kg)</label>
-                        <input type="number" class="form-input" name="boxPayload" value="600" min="50" max="2000">
-                    </div>
-                </div>
-            `;
-            
-            container.appendChild(boxDiv);
-        }
+function conciseDims(dims){ return `${dims[0]}×${dims[1]}×${dims[2]} mm`; }
 
-        function removeCustomBox(button) {
-            button.closest('.truck-config').remove();
-        }
+function createBoxRow(defaults={}){
+  const container = document.createElement('div');
+  container.className = 'box-item';
+  let options = "";
+  Object.keys(BOX_CATALOGUE).forEach(name=>{
+    const sel = defaults.box_type===name?"selected":"";
+    options+=`<option value="${name}" ${sel}>${name}</option>`;
+  });
 
-        function addCustomTruck() {
-            customTruckCount++;
-            const container = document.getElementById('customTrucks');
-            
-            const truckDiv = document.createElement('div');
-            truckDiv.className = 'truck-config';
-            truckDiv.setAttribute('data-type', 'truck');
-            truckDiv.innerHTML = `
-                <div class="truck-header">
-                    <div class="truck-title">Custom Truck ${customTruckCount}</div>
-                    <button type="button" onclick="removeCustomTruck(this)" style="background: #dc2626; color: white; border: none; padding: 0.25rem 0.5rem; border-radius: 4px; cursor: pointer;">Remove</button>
-                </div>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label class="form-label">Truck Name</label>
-                        <input type="text" class="form-input" name="truckName" placeholder="e.g., Custom Heavy Truck" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Internal Length (mm)</label>
-                        <input type="number" class="form-input" name="truckLength" placeholder="e.g., 6000" min="1000" max="20000" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Internal Width (mm)</label>
-                        <input type="number" class="form-input" name="truckWidth" placeholder="e.g., 2400" min="1000" max="3000" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Internal Height (mm)</label>
-                        <input type="number" class="form-input" name="truckHeight" placeholder="e.g., 2400" min="1000" max="4000" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Max Payload (kg)</label>
-                        <input type="number" class="form-input" name="truckPayload" placeholder="e.g., 3000" min="500" max="25000" required>
-                    </div>
-                </div>
-            `;
-            
-            container.appendChild(truckDiv);
-        }
+  container.innerHTML = `
+    <div class="box-top">
+      <div style="flex:1;">
+        <label class="muted">Box Type</label>
+        <select class="b-type">${options}</select>
+        <div class="dims muted small-dims"></div>
+      </div>
+      <div style="width:110px;">
+        <label class="muted">Qty (opt)</label>
+        <input class="b-qty" type="number" min="1" placeholder="auto" value="${defaults.quantity||''}" />
+      </div>
+      <div style="width:120px;">
+        <label class="muted">Max payload (kg)</label>
+        <input class="b-payload" type="number" placeholder="kg" value="${defaults.max_payload_kg||''}" />
+      </div>
+      <div style="width:56px; display:flex; align-items:flex-end; justify-content:flex-end;">
+        <button class="remove small secondary">✕</button>
+      </div>
+    </div>
+  `;
+  boxesDiv.appendChild(container);
 
-        function removeCustomTruck(button) {
-            button.closest('.truck-config').remove();
-        }
+  const sel = container.querySelector('.b-type');
+  const dimsNode = container.querySelector('.small-dims');
+  const payloadNode = container.querySelector('.b-payload');
 
-        function resetForm() {
-            document.getElementById('packagingForm').reset();
-            document.getElementById('resultsSection').style.display = 'none';
-            document.getElementById('errorMessage').style.display = 'none';
-            document.getElementById('successMessage').style.display = 'none';
-            
-            // Reset custom boxes and trucks
-            customBoxCount = 1;
-            customTruckCount = 0;
-            const customBoxesContainer = document.getElementById('customBoxes');
-            customBoxesContainer.innerHTML = '';
-            addCustomBox(); // Add back the first default box
-            
-            document.getElementById('customTrucks').innerHTML = '';
-            
-            // Reset default values for route percentages after form reset
-            document.getElementById('highway').checked = true;
-            document.getElementById('semiUrban').checked = true;
-            document.getElementById('village').checked = false;
-            updateRoutePercentages();
-        }
+  function updateFields(){
+    const chosen = BOX_CATALOGUE[sel.value];
+    dimsNode.innerText = conciseDims(chosen.dims);
+    payloadNode.value = defaults.max_payload_kg ?? chosen.weight;
+    rebuildSummaryPills();
+  }
+  sel.onchange = updateFields;
+  container.querySelector('.remove').onclick = ()=>{ container.remove(); rebuildSummaryPills(); };
 
+  updateFields();
+}
 
-        function showErrorMessage(message) {
-            const errorDiv = document.getElementById('errorMessage');
-            errorDiv.textContent = message;
-            errorDiv.style.display = 'block';
-            document.getElementById('successMessage').style.display = 'none';
-            errorDiv.scrollIntoView({ behavior: 'smooth' });
-        }
+document.getElementById('addBox').onclick = ()=>createBoxRow();
+createBoxRow();
 
-        function showSuccessMessage(message) {
-            const successDiv = document.getElementById('successMessage');
-            successDiv.textContent = message;
-            successDiv.style.display = 'block';
-            document.getElementById('errorMessage').style.display = 'none';
-        }
+document.getElementById('resetBtn').onclick = ()=>{
+  boxesDiv.innerHTML='';
+  createBoxRow();
+  document.getElementById('source').value='';
+  document.getElementById('dest').value='';
+  document.getElementById('truckNames').value='';
+  document.getElementById('truckDims').value='';
+  document.getElementById('truckPayloads').value='';
+  rebuildSummaryPills();
+};
 
-        // *** MODIFIED SECTION START ***
-        
-        /**
-         * Automatically calculates and distributes the percentages for route types
-         * based on which checkboxes are selected. Ensures the total is always 100.
-         */
-        function updateRoutePercentages() {
-            const routeElements = [
-                { check: document.getElementById('highway'), input: document.getElementById('highwayPercent') },
-                { check: document.getElementById('semiUrban'), input: document.getElementById('semiUrbanPercent') },
-                { check: document.getElementById('village'), input: document.getElementById('villagePercent') }
-            ];
+function rebuildSummaryPills(){
+  summaryPills.innerHTML='';
+  boxesDiv.querySelectorAll('.box-item').forEach(n=>{
+    const type=n.querySelector('.b-type').value;
+    const l=n.querySelector('.small-dims')?.innerText||'';
+    const pill=document.createElement('div');
+    pill.className='pill';
+    pill.innerText=`${type} • ${l}`;
+    summaryPills.appendChild(pill);
+  });
+}
 
-            const checkedRoutes = routeElements.filter(route => route.check.checked);
-            const count = checkedRoutes.length;
-            
-            hideErrorMessage(); // Hide any previous percentage error
+function buildRequest(){
+  const boxes=[];
+  boxesDiv.querySelectorAll('.box-item').forEach(n=>{
+    const type=n.querySelector('.b-type').value;
+    const [l,w,h]=BOX_CATALOGUE[type].dims.map(Number);
+    const payload=n.querySelector('.b-payload').value?parseFloat(n.querySelector('.b-payload').value):null;
+    const qty=n.querySelector('.b-qty').value?parseInt(n.querySelector('.b-qty').value):null;
+    boxes.push({ box_type:type, external_length_mm:l, external_width_mm:w, external_height_mm:h, max_payload_kg:payload, quantity:qty });
+  });
 
-            if (count > 0) {
-                const basePercentage = Math.floor(100 / count);
-                let remainder = 100 % count;
-                
-                routeElements.forEach(route => {
-                    if (route.check.checked) {
-                        // Distribute the remainder evenly to the first few checked boxes
-                        let value = basePercentage;
-                        if (remainder > 0) {
-                            value++;
-                            remainder--;
-                        }
-                        route.input.value = value;
-                        route.input.disabled = true; // Disable manual input
-                    } else {
-                        route.input.value = 0;
-                        route.input.disabled = true; // Disable manual input
-                    }
-                });
-            } else {
-                // If no boxes are checked, set all percentages to 0
-                routeElements.forEach(route => {
-                    route.input.value = 0;
-                    route.input.disabled = true;
-                });
-            }
-        }
+  const truckNames=(document.getElementById('truckNames').value||'').split(',').map(s=>s.trim()).filter(Boolean);
+  const truckDimsRaw=(document.getElementById('truckDims').value||'').split(';').map(s=>s.trim()).filter(Boolean);
+  const truckPayloads=(document.getElementById('truckPayloads').value||'').split(',').map(s=>s.trim()).filter(Boolean);
 
-        function hideErrorMessage() {
-            const errorDiv = document.getElementById('errorMessage');
-            if (errorDiv.textContent.includes('Route type percentages')) {
-                 errorDiv.style.display = 'none';
-            }
-        }
+  let trucks=null;
+  if(truckNames.length && truckDimsRaw.length===truckNames.length){
+    trucks=truckNames.map((name,i)=>{
+      const dims=truckDimsRaw[i].split('x').map(x=>parseFloat(x));
+      return { name, internal_length_mm:dims[0], internal_width_mm:dims[1], internal_height_mm:dims[2], payload_kg: truckPayloads[i]?parseFloat(truckPayloads[i]):undefined };
+    });
+  }
 
-        // *** MODIFIED SECTION END ***
+  const route_types=[];
+  if(document.getElementById('highway').checked) route_types.push('Highway');
+  if(document.getElementById('semi').checked) route_types.push('Semi-Urban');
+  if(document.getElementById('village').checked) route_types.push('Village');
 
+  return { boxes, trucks, route_source:document.getElementById('source').value||undefined, route_dest:document.getElementById('dest').value||undefined, route_types };
+}
 
-        // Initialize the application
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Packaging Asset Design Tool Initialized');
+// --- Render results ---
+function renderResultsArray(data){
+  if(!Array.isArray(data)||data.length===0){
+    document.getElementById('results').innerHTML=`<div class="muted">No trucks returned.</div>`;
+    return;
+  }
+  const container=document.createElement('div');
+  container.className='results-grid';
 
-            // Set initial route percentages based on default checked boxes
-            updateRoutePercentages();
-            
-            // Attach the event listener to each checkbox for automatic percentage calculation
-            ['highway', 'semiUrban', 'village'].forEach(id => {
-                document.getElementById(id).addEventListener('change', updateRoutePercentages);
-            });
+  data.forEach(r=>{
+    const truckName=r.truck_name||'Truck';
+    const units=r.units_packed_total??0;
+    const cube=r.cube_utilisation_pct??0;
+    const payloadKg=r.payload_used_kg??0;
+    const payloadPct=r.payload_used_pct??0;
+    const boxes=r.box_counts_by_type||{};
 
-            // Check if backend is available
-            fetch(`${API_BASE_URL}/health`)
-                .then(response => {
-                    if (response.ok) return response.json();
-                    throw new Error('Network response was not ok.');
-                })
-                .then(data => {
-                    console.log('Backend status:', data);
-                    showSuccessMessage('✅ Connected to backend successfully!');
-                    setTimeout(() => {
-                        document.getElementById('successMessage').style.display = 'none';
-                    }, 3000);
-                })
-                .catch(error => {
-                    console.warn('Backend connection failed:', error);
-                    showErrorMessage('⚠️ Backend not available. Please ensure the server is running.');
-                });
-        });
-    </script>
+    const card=document.createElement('div');
+    card.className='truck-card';
+
+    const title=document.createElement('div');
+    title.style.display='flex';
+    title.style.justifyContent='space-between';
+    title.style.alignItems='center';
+    const h=document.createElement('div');
+    h.innerHTML=`<div style="font-weight:800;font-size:14px;color:var(--accent-contrast)">${truckName}</div>
+                 <div class="metric-small muted">${units} units</div>`;
+    title.appendChild(h);
+    card.appendChild(title);
+
+    const metrics=document.createElement('div');
+    metrics.style.display='flex';
+    metrics.style.justifyContent='space-between';
+    metrics.style.gap='8px';
+    metrics.style.marginTop='10px';
+
+    const left=document.createElement('div');
+    left.innerHTML=`<div class="metric">${cube.toFixed(2)}%</div><div class="metric-small">Cube Utilisation</div>`;
+    const right=document.createElement('div');
+    right.style.textAlign='right';
+    right.innerHTML=`<div class="metric">${payloadKg} kg</div><div class="metric-small">Payload Used (${payloadPct}%)</div>`;
+    metrics.appendChild(left);
+    metrics.appendChild(right);
+    card.appendChild(metrics);
+
+    // Box breakdown
+    const list=document.createElement('div');
+    list.style.marginTop='10px';
+    list.innerHTML=`<div style="font-weight:700;font-size:13px;color:#0f172a">Boxes</div>`;
+    const ul=document.createElement('div');
+    ul.style.marginTop='6px';
+    for(const [k,v] of Object.entries(boxes)){
+      const row=document.createElement('div');
+      row.style.display='flex';
+      row.style.justifyContent='space-between';
+      row.style.fontSize='13px';
+      row.style.color='#123';
+      row.style.marginTop='6px';
+      row.innerHTML=`<div style="color:var(--muted)">${k}</div><div style="font-weight:800">${v}</div>`;
+      ul.appendChild(row);
+    }
+    list.appendChild(ul);
+    card.appendChild(list);
+
+    if(r.notes&&r.notes.length){
+      const note=document.createElement('div');
+      note.style.marginTop='10px';
+      note.style.fontSize='12px';
+      note.style.color='var(--muted)';
+      note.innerText='Notes: '+r.notes.slice(0,2).join(' • ');
+      card.appendChild(note);
+    }
+
+    container.appendChild(card);
+  });
+
+  const resultsNode=document.getElementById('results');
+  resultsNode.innerHTML='';
+  resultsNode.appendChild(container);
+}
+
+// --- Optimize button ---
+document.getElementById('optBtn').onclick=async ()=>{
+  const btn=document.getElementById('optBtn');
+  const resultsNode=document.getElementById('results');
+  const payload=buildRequest();
+
+  btn.disabled=true;
+  btn.innerHTML=`<span class="loader"></span>Optimizing...`;
+  resultsNode.innerHTML=`<div style="display:flex;gap:8px;align-items:center;"><div class="loader"></div><div>Running optimization...</div></div>`;
+
+  try{
+    const resp=await fetch('http://127.0.0.1:8000/api/optimize',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+
+    if(!resp.ok){
+      const text=await resp.text();
+      resultsNode.innerHTML=`<pre>Error ${resp.status}: ${text}</pre>`;
+      return;
+    }
+
+    const data=await resp.json();
+    if(!data||(Array.isArray(data)&&data.length===0)){
+      resultsNode.innerHTML=`<div class="muted">No trucks returned by server.</div>`;
+      return;
+    }
+
+    if(Array.isArray(data)){
+      renderResultsArray(data);
+    } else if(data&&typeof data==='object'){
+      if(data.truck_name||data.units_packed_total){
+        renderResultsArray([data]);
+      } else {
+        resultsNode.innerHTML=`<pre>${JSON.stringify(data,null,2)}</pre>`;
+      }
+    } else {
+      resultsNode.innerHTML=`<pre>Unexpected response: ${String(data)}</pre>`;
+    }
+
+  }catch(err){
+    resultsNode.innerHTML=`<pre>Error: ${err && err.message?err.message:String(err)}</pre>`;
+  }finally{
+    btn.disabled=false;
+    btn.innerHTML='⚡ Optimize Trucks';
+    rebuildSummaryPills();
+  }
+};
+
+rebuildSummaryPills();
+</script>
 </body>
-</html>       
+</html>
