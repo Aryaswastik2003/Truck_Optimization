@@ -2,899 +2,665 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>🚛 Real-World Truck Optimizer</title>
+<title>🚛 Truck Optimiser — 3D Demo</title>
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <style>
 :root{
-  --bg-primary: #0f172a;
-  --bg-secondary: #1e293b;
-  --bg-card: #334155;
-  --accent: #10b981;
-  --accent-hover: #059669;
-  --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --border: #475569;
-  --success: #22c55e;
-  --warning: #f59e0b;
-  --error: #ef4444;
-  --glass: rgba(51, 65, 85, 0.8);
+  --bg-1:#f7fbf9;
+  --bg-2:#eef6f1;
+  --card:#ffffff;
+  --accent:#16a34a;
+  --accent-2:#10b981;
+  --muted:#6b7280;
+  --panel-shadow:0 8px 30px rgba(2,6,23,0.06);
+  --glass:rgba(255,255,255,0.6);
+  --accent-contrast:#063f2f;
+}
+html,body{height:100%;}
+body{
+  font-family:Inter,sans-serif;
+  background:linear-gradient(135deg,var(--bg-1),var(--bg-2));
+  color:#0f172a;
+  padding:28px;
+  line-height:1.45;
+  margin:0;
 }
 
-* { box-sizing: border-box; }
-html, body { height: 100%; margin: 0; }
-
-body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
-  color: var(--text-primary);
-  padding: 20px;
-  line-height: 1.6;
+h2{
+  margin:0 0 12px 0;
+  font-size:18px;
+  font-weight:700;
+  color:var(--accent-contrast);
+  display:flex;
+  align-items:center;
+  gap:10px;
 }
 
-.container { max-width: 1400px; margin: 0 auto; }
-
-.header {
-  text-align: center;
-  margin-bottom: 40px;
-  padding: 30px;
-  background: var(--glass);
-  border-radius: 20px;
-  backdrop-filter: blur(10px);
-  border: 1px solid var(--border);
+.card{
+  background:var(--card);
+  border-radius:14px;
+  padding:18px;
+  box-shadow:var(--panel-shadow);
+  margin-bottom:18px;
+  transition:transform .16s ease;
 }
 
-.header h1 {
-  font-size: 2.5rem;
-  margin: 0 0 10px 0;
-  background: linear-gradient(135deg, var(--accent), #06d6a0);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+.card.small{padding:12px;border-radius:12px;}
+label{display:block;font-size:13px;margin-bottom:6px;color:var(--muted);font-weight:600;}
+input[type="text"], input[type="number"], select{
+  width:100%;padding:8px 10px;border-radius:10px;border:1px solid #e6eef0;background:#fbfdfb;
 }
-
-.header p {
-  color: var(--text-secondary);
-  font-size: 1.1rem;
-  margin: 0;
+.row{display:flex;gap:12px;flex-wrap:wrap;}
+.col{flex:1;min-width:200px;}
+button{
+  background:linear-gradient(90deg,var(--accent),var(--accent-2));
+  color:white;border:none;padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:700;
+  box-shadow:0 6px 18px rgba(16,185,129,0.14);
 }
-
-.grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 30px;
-  margin-bottom: 30px;
+button.secondary{background:#f3f4f6;color:#111;box-shadow:none;border:1px solid #e6eef0;}
+button:disabled{opacity:.6;cursor:wait;}
+.muted{color:var(--muted);font-size:13px;}
+.small{font-size:13px;padding:6px 10px;}
+.box-item{
+  border:1px solid #eef2f7;
+  padding:12px;
+  border-radius:12px;
+  margin-bottom:10px;
+  background:linear-gradient(180deg,#ffffff,#fbfffb);
+  display:flex;flex-direction:column;gap:8px;
 }
-
-.card {
-  background: var(--glass);
-  border-radius: 16px;
-  padding: 25px;
-  border: 1px solid var(--border);
-  backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
+.box-top{display:flex;gap:12px;align-items:center;}
+.box-top .meta{font-size:13px;color:#0f172a;font-weight:600;}
+.dims{font-size:12px;color:var(--muted);margin-top:4px;}
+.results-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;}
+.truck-card{
+  padding:12px;border-radius:10px;background:linear-gradient(180deg,#ffffff,#f7fff7);border:1px solid #ecfdf5;
+  position:relative;
 }
-
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+.metric{font-weight:700;font-size:18px;color:var(--accent-contrast);}
+.metric-small{font-size:12px;color:var(--muted);}
+.loader{
+  display:inline-block;width:18px;height:18px;
+  border-radius:50%;
+  border:3px solid rgba(255,255,255,0.2);
+  border-top-color:white;
+  animation:spin 1s linear infinite;
+  margin-right:8px;
 }
-
-.card h2 {
-  color: var(--text-primary);
-  margin: 0 0 20px 0;
-  font-size: 1.4rem;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+@keyframes spin{to{transform:rotate(360deg)}}
+.boxes-compact{display:flex;gap:10px;flex-wrap:wrap;}
+.pill{
+  background:linear-gradient(90deg,#ecfdf5,#dcfce7);
+  border:1px solid #bbf7d0;
+  padding:6px 8px;border-radius:999px;font-size:12px;color:#065f46;font-weight:700;
 }
+.note{font-size:12px;color:var(--muted);margin-top:8px;}
 
-.form-group {
-  margin-bottom: 20px;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 15px;
-}
-
-label {
-  display: block;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  font-weight: 600;
-  margin-bottom: 6px;
-}
-
-input, select {
+/* 3D Visualization Styles */
+.viz-container {
   width: 100%;
-  padding: 12px 16px;
-  background: rgba(15, 23, 42, 0.8);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  color: var(--text-primary);
-  font-size: 0.95rem;
-  transition: all 0.2s ease;
+  height: 300px;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 12px;
+  border: 1px solid #e6eef0;
+  position: relative;
 }
 
-input:focus, select:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+.viz-controls {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 100;
+  display: flex;
+  gap: 6px;
 }
 
-.btn {
-  background: linear-gradient(135deg, var(--accent), var(--accent-hover));
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 10px;
-  font-weight: 600;
+.viz-control-btn {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #ddd;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  border: 1px solid transparent;
+  transition: background 0.2s;
 }
 
-.btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+.viz-control-btn:hover {
+  background: rgba(255, 255, 255, 1);
 }
 
-.btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.btn-secondary {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-}
-
-.btn-secondary:hover {
-  background: var(--border);
-  box-shadow: none;
-}
-
-.btn-small {
-  padding: 8px 16px;
-  font-size: 0.85rem;
-}
-
-.box-item {
-  background: rgba(15, 23, 42, 0.5);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 15px;
-  transition: all 0.2s ease;
-}
-
-.box-item:hover {
+.viz-control-btn.active {
+  background: var(--accent);
+  color: white;
   border-color: var(--accent);
 }
 
-.box-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
+.legend {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  z-index: 100;
+  max-width: 200px;
 }
 
-.box-type-select {
-  flex: 1;
-  margin-right: 15px;
-}
-
-.constraint-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 15px;
-  margin-top: 15px;
-}
-
-.checkbox-group {
+.legend-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  margin-bottom: 4px;
 }
 
-.checkbox-group input[type="checkbox"] {
-  width: auto;
-  margin: 0;
-}
-
-.results-section {
-  grid-column: 1 / -1;
-  margin-top: 20px;
-}
-
-.results-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.stability-indicator {
-  padding: 10px 15px;
-  border-radius: 8px;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.stability-safe {
-  background: rgba(34, 197, 94, 0.2);
-  color: var(--success);
-  border: 1px solid var(--success);
-}
-
-.stability-warning {
-  background: rgba(245, 158, 11, 0.2);
-  color: var(--warning);
-  border: 1px solid var(--warning);
-}
-
-.stability-danger {
-  background: rgba(239, 68, 68, 0.2);
-  color: var(--error);
-  border: 1px solid var(--error);
-}
-
-.metrics-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
-  margin-bottom: 30px;
-}
-
-.metric-card {
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 20px;
-  text-align: center;
-}
-
-.metric-value {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--accent);
-  margin-bottom: 5px;
-}
-
-.metric-label {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-}
-
-.instructions-list {
-  background: rgba(15, 23, 42, 0.4);
-  border-radius: 12px;
-  padding: 20px;
-  max-height: 400px;
-  overflow-y: auto;
-}
-
-.instruction-item {
-  padding: 10px 0;
-  border-bottom: 1px solid var(--border);
-  color: var(--text-secondary);
-}
-
-.instruction-item:last-child {
-  border-bottom: none;
-}
-
-.instruction-item strong {
-  color: var(--text-primary);
-}
-
-.alert {
-  padding: 15px;
-  border-radius: 10px;
-  margin: 15px 0;
-  border: 1px solid;
-}
-
-.alert-warning {
-  background: rgba(245, 158, 11, 0.1);
-  border-color: var(--warning);
-  color: var(--warning);
-}
-
-.alert-error {
-  background: rgba(239, 68, 68, 0.1);
-  border-color: var(--error);
-  color: var(--error);
-}
-
-.loader {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  border-top-color: var(--accent);
-  animation: spin 1s ease-in-out infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.visualization-container {
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 20px;
-  margin-top: 20px;
-}
-
-.truck-3d-view {
-  width: 100%;
-  height: 400px;
-  background: linear-gradient(45deg, #1e293b, #334155);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-muted);
-  font-style: italic;
-}
-
-@media (max-width: 768px) {
-  .grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-  
-  .constraint-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .metrics-grid {
-    grid-template-columns: 1fr;
-  }
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  border: 1px solid #ccc;
 }
 </style>
 </head>
 <body>
 
-<div class="container">
-  <div class="header">
-    <h1>🚛 Real-World Truck Optimizer</h1>
-    <p>Physics-based 3D packing with real-world constraints & safety validation</p>
+<div class="card">
+  <h2>📦 Custom Outer Box Details</h2>
+  <div id="boxes"></div>
+  <div style="margin-top:10px;">
+    <button id="addBox" class="small">+ Add Another Box Type</button>
+    <span class="muted" style="margin-left:12px;">Pick from PRD catalogue. Edit qty or payload if needed.</span>
+  </div>
+</div>
+
+<div class="card">
+  <h2>🛣️ Route & Trucks</h2>
+  <div class="row">
+    <div class="col">
+      <label>Source</label>
+      <input id="source" type="text" placeholder="City or depot" />
+    </div>
+    <div class="col">
+      <label>Destination</label>
+      <input id="dest" type="text" placeholder="City or depot" />
+    </div>
   </div>
 
-  <div class="grid">
-    <!-- Box Input Section -->
-    <div class="card">
-      <h2>📦 Box Specifications</h2>
-      <div id="boxes-container"></div>
-      <button id="add-box" class="btn btn-secondary btn-small">+ Add Another Box Type</button>
-    </div>
-
-    <!-- Truck Specification -->
-    <div class="card">
-      <h2>🚛 Truck Specifications</h2>
-      <div class="form-group">
-        <label>Truck Model</label>
-        <select id="truck-select">
-          <option value="">Select a truck model...</option>
-        </select>
-      </div>
-      
-      <div class="form-group">
-        <label>Custom Truck (Optional)</label>
-        <div class="form-row">
-          <input type="text" id="custom-truck-name" placeholder="Truck name">
-          <input type="number" id="custom-length" placeholder="Length (mm)">
-          <input type="number" id="custom-width" placeholder="Width (mm)">
-        </div>
-        <div class="form-row" style="margin-top: 10px;">
-          <input type="number" id="custom-height" placeholder="Height (mm)">
-          <input type="number" id="custom-payload" placeholder="Max payload (kg)">
-          <input type="number" id="custom-wheelbase" placeholder="Wheelbase (mm)">
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label>Route Information</label>
-        <div class="form-row">
-          <input type="text" id="route-source" placeholder="Source city">
-          <input type="text" id="route-destination" placeholder="Destination">
-          <select id="route-type">
-            <option value="highway">Highway</option>
-            <option value="urban">Urban</option>
-            <option value="mixed">Mixed</option>
-          </select>
-        </div>
+  <div style="margin-top:12px" class="row">
+    <div class="col">
+      <label>Route Type</label>
+      <div style="display:flex; gap:12px; align-items:center;">
+        <label><input type="checkbox" id="highway" /> Highway</label>
+        <label><input type="checkbox" id="semi" /> Semi-Urban</label>
+        <label><input type="checkbox" id="village" /> Village</label>
       </div>
     </div>
 
-    <!-- Results Section -->
-    <div class="results-section card">
-      <div class="results-header">
-        <h2>📊 Optimization Results</h2>
-        <button id="optimize-btn" class="btn">🚀 Optimize Loading</button>
+    <div class="col">
+      <label>Custom Trucks (optional)</label>
+      <input id="truckNames" placeholder="22 ft Truck,32 ft Single Axle,32 ft Multi Axle" />
+      <div style="display:flex; gap:8px; margin-top:6px;">
+        <input id="truckDims" placeholder="6700x2440x2440;9750x2440x2440;9750x2440x2440" />
+        <input id="truckPayloads" placeholder="7500,9000,16000" />
       </div>
-      
-      <div id="results-content">
-        <p style="color: var(--text-muted); text-align: center; padding: 40px;">
-          Configure your boxes and truck, then click "Optimize Loading" to see results.
-        </p>
-      </div>
+      <div class="note">Leave blank to use default PRD trucks.</div>
     </div>
   </div>
 </div>
 
+<div style="display:flex; gap:14px; margin-bottom:18px;">
+  <button id="optBtn">⚡ Optimize Trucks</button>
+  <button id="resetBtn" class="secondary">Reset</button>
+  <div style="flex:1"></div>
+  <div class="boxes-compact" id="summaryPills"></div>
+</div>
+
+<div class="card">
+  <h2>📊 Results with 3D Visualization</h2>
+  <div id="results" class="muted">No results yet.</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-// Box catalogue with real-world specifications
 const BOX_CATALOGUE = {
-  "Small Electronics Box": { 
-    dims: [300, 200, 150], 
-    weight: 5,
-    fragility: "very_fragile",
-    stackable: false,
-    max_stack_weight: 0
-  },
-  "Standard Shipping Box": { 
-    dims: [400, 300, 200], 
-    weight: 3,
-    fragility: "normal",
-    stackable: true,
-    max_stack_weight: 50
-  },
-  "Heavy Appliance Box": { 
-    dims: [800, 600, 800], 
-    weight: 45,
-    fragility: "fragile",
-    stackable: false,
-    max_stack_weight: 0,
-    orientation: "upright_only"
-  },
-  "Industrial Crate": { 
-    dims: [1200, 800, 600], 
-    weight: 80,
-    fragility: "robust",
-    stackable: true,
-    max_stack_weight: 200
-  },
-  "Textile Bale": { 
-    dims: [900, 700, 400], 
-    weight: 25,
-    fragility: "normal",
-    stackable: true,
-    max_stack_weight: 100
-  },
-  "Chemical Drum": { 
-    dims: [600, 600, 900], 
-    weight: 200,
-    fragility: "normal",
-    stackable: false,
-    max_stack_weight: 0,
-    orientation: "upright_only"
-  },
-  "Furniture Package": { 
-    dims: [1500, 800, 200], 
-    weight: 30,
-    fragility: "fragile",
-    stackable: true,
-    max_stack_weight: 80
-  }
+  "Crate 400x300x120": { dims:[400,300,120], weight:15 },
+  "Crate 400x300x235": { dims:[400,300,235], weight:15 },
+  "Crate 600x400x120": { dims:[600,400,120], weight:15 },
+  "Crate 600x400x180": { dims:[600,400,180], weight:15 },
+  "Crate 600x400x235": { dims:[600,400,235], weight:15 },
+  "Crate 600x400x348": { dims:[600,400,348], weight:15 },
+  "PP Box": { dims:[1900,1200,800], weight:15 },
+  "FLC 1200x1000x595": { dims:[1200,1000,595], weight:800 },
+  "FLC 1200x1000x795": { dims:[1200,1000,795], weight:800 },
+  "FLC 1200x1000x975": { dims:[1200,1000,975], weight:800 },
+  "FLC 1200x1000x1200": { dims:[1200,1000,1200], weight:800 },
+  "PLS 1200x800x450": { dims:[1200,800,450], weight:450 },
+  "PLS 1200x800x650": { dims:[1200,800,650], weight:450 },
+  "PLS 1200x800x800": { dims:[1200,800,800], weight:450 },
+  "PLS 1200x800x1000": { dims:[1200,800,1000], weight:450 },
+  "PLS 1200x800x1100": { dims:[1200,800,1100], weight:450 },
+  "PLS 1200x800x1200": { dims:[1200,800,1200], weight:450 },
+  "PLS 1200x1000x450": { dims:[1200,1000,450], weight:500 },
+  "PLS 1200x1000x650": { dims:[1200,1000,650], weight:500 },
+  "PLS 1200x1000x800": { dims:[1200,1000,800], weight:500 },
+  "PLS 1200x1000x1000": { dims:[1200,1000,1000], weight:500 },
+  "PLS 1200x1000x1100": { dims:[1200,1000,1100], weight:500 },
+  "PLS 1200x1000x1200": { dims:[1200,1000,1200], weight:500 },
 };
 
-let boxCounter = 0;
-let defaultTrucks = [];
+// Color palette for different box types
+const BOX_COLORS = [
+  0xff6b6b, 0x4ecdc4, 0x45b7d1, 0xf9ca24, 0xf0932b,
+  0xeb4d4b, 0x6c5ce7, 0xa55eea, 0x26de81, 0xfd79a8,
+  0xe17055, 0x74b9ff, 0x00b894, 0xfdcb6e, 0xe84393
+];
 
-// Initialize the application
-document.addEventListener('DOMContentLoaded', async function() {
-  await loadDefaultTrucks();
-  addBoxForm();
-  setupEventListeners();
-});
+const boxesDiv = document.getElementById('boxes');
+const summaryPills = document.getElementById('summaryPills');
 
-async function loadDefaultTrucks() {
-  try {
-    const response = await fetch('http://127.0.0.1:8000/api/default-trucks');
-    if (response.ok) {
-      defaultTrucks = await response.json();
-      populateTruckSelect();
-    }
-  } catch (error) {
-    console.error('Failed to load default trucks:', error);
-    // Fallback trucks
-    defaultTrucks = [
-      {
-        name: "Tata 407 (22 ft)",
-        internal_length_mm: 6700,
-        internal_width_mm: 2440,
-        internal_height_mm: 2440,
-        max_payload_kg: 7500,
-        front_axle_limit_kg: 2500,
-        rear_axle_limit_kg: 5000,
-        wheelbase_mm: 3800,
-        max_center_of_gravity_height_mm: 1800
-      }
-    ];
-    populateTruckSelect();
-  }
-}
+function conciseDims(dims){ return `${dims[0]}×${dims[1]}×${dims[2]} mm`; }
 
-function populateTruckSelect() {
-  const select = document.getElementById('truck-select');
-  select.innerHTML = '<option value="">Select a truck model...</option>';
-  
-  defaultTrucks.forEach((truck, index) => {
-    const option = document.createElement('option');
-    option.value = index;
-    option.textContent = `${truck.name} - ${truck.max_payload_kg}kg capacity`;
-    select.appendChild(option);
+function createBoxRow(defaults={}){
+  const container = document.createElement('div');
+  container.className = 'box-item';
+  let options = "";
+  Object.keys(BOX_CATALOGUE).forEach(name=>{
+    const sel = defaults.box_type===name?"selected":"";
+    options+=`<option value="${name}" ${sel}>${name}</option>`;
   });
-}
 
-function addBoxForm() {
-  const container = document.getElementById('boxes-container');
-  const boxDiv = document.createElement('div');
-  boxDiv.className = 'box-item';
-  boxDiv.dataset.boxId = boxCounter++;
-  
-  boxDiv.innerHTML = `
-    <div class="box-header">
-      <select class="box-type-select">
-        <option value="">Select box type...</option>
-        ${Object.keys(BOX_CATALOGUE).map(name => 
-          `<option value="${name}">${name}</option>`
-        ).join('')}
-      </select>
-      <button class="btn btn-secondary btn-small remove-box" onclick="removeBox(this)">✕</button>
-    </div>
-    
-    <div class="form-row">
-      <div>
-        <label>Length (mm)</label>
-        <input type="number" class="box-length" min="1" required>
+  container.innerHTML = `
+    <div class="box-top">
+      <div style="flex:1;">
+        <label class="muted">Box Type</label>
+        <select class="b-type">${options}</select>
+        <div class="dims muted small-dims"></div>
       </div>
-      <div>
-        <label>Width (mm)</label>
-        <input type="number" class="box-width" min="1" required>
+      <div style="width:110px;">
+        <label class="muted">Qty (opt)</label>
+        <input class="b-qty" type="number" min="1" placeholder="auto" value="${defaults.quantity||''}" />
       </div>
-      <div>
-        <label>Height (mm)</label>
-        <input type="number" class="box-height" min="1" required>
+      <div style="width:120px;">
+        <label class="muted">Max payload (kg)</label>
+        <input class="b-payload" type="number" placeholder="kg" value="${defaults.max_payload_kg||''}" />
       </div>
-    </div>
-    
-    <div class="form-row">
-      <div>
-        <label>Weight (kg)</label>
-        <input type="number" class="box-weight" min="0.1" step="0.1" required>
-      </div>
-      <div>
-        <label>Quantity</label>
-        <input type="number" class="box-quantity" min="1" value="1" required>
-      </div>
-      <div>
-        <label>Max Stack Weight (kg)</label>
-        <input type="number" class="box-stack-weight" min="0" step="0.1">
-      </div>
-    </div>
-    
-    <div class="constraint-grid">
-      <div>
-        <label>Fragility</label>
-        <select class="box-fragility">
-          <option value="normal">Normal</option>
-          <option value="fragile">Fragile</option>
-          <option value="very_fragile">Very Fragile</option>
-          <option value="robust">Robust</option>
-        </select>
-      </div>
-      <div>
-        <label>Orientation</label>
-        <select class="box-orientation">
-          <option value="any">Any Direction</option>
-          <option value="upright_only">Upright Only</option>
-          <option value="no_invert">No Inversion</option>
-        </select>
-      </div>
-      <div>
-        <label>Priority</label>
-        <select class="box-priority">
-          <option value="normal">Normal</option>
-          <option value="first_out">First Out</option>
-          <option value="last_out">Last Out</option>
-        </select>
-      </div>
-      <div class="checkbox-group">
-        <input type="checkbox" class="box-stackable" id="stackable-${boxDiv.dataset.boxId}" checked>
-        <label for="stackable-${boxDiv.dataset.boxId}">Stackable</label>
-      </div>
-      <div class="checkbox-group">
-        <input type="checkbox" class="box-bottom-support" id="support-${boxDiv.dataset.boxId}">
-        <label for="support-${boxDiv.dataset.boxId}">Needs Full Support</label>
+      <div style="width:56px; display:flex; align-items:flex-end; justify-content:flex-end;">
+        <button class="remove small secondary">✕</button>
       </div>
     </div>
   `;
-  
-  container.appendChild(boxDiv);
-  
-  // Add event listener for box type selection
-  const typeSelect = boxDiv.querySelector('.box-type-select');
-  typeSelect.addEventListener('change', function() {
-    updateBoxFromCatalogue(boxDiv, this.value);
+  boxesDiv.appendChild(container);
+
+  const sel = container.querySelector('.b-type');
+  const dimsNode = container.querySelector('.small-dims');
+  const payloadNode = container.querySelector('.b-payload');
+
+  function updateFields(){
+    const chosen = BOX_CATALOGUE[sel.value];
+    dimsNode.innerText = conciseDims(chosen.dims);
+    payloadNode.value = defaults.max_payload_kg ?? chosen.weight;
+    rebuildSummaryPills();
+  }
+  sel.onchange = updateFields;
+  container.querySelector('.remove').onclick = ()=>{ container.remove(); rebuildSummaryPills(); };
+
+  updateFields();
+}
+
+document.getElementById('addBox').onclick = ()=>createBoxRow();
+createBoxRow();
+
+document.getElementById('resetBtn').onclick = ()=>{
+  boxesDiv.innerHTML='';
+  createBoxRow();
+  document.getElementById('source').value='';
+  document.getElementById('dest').value='';
+  document.getElementById('truckNames').value='';
+  document.getElementById('truckDims').value='';
+  document.getElementById('truckPayloads').value='';
+  document.getElementById('results').innerHTML = 'No results yet.';
+  rebuildSummaryPills();
+};
+
+function rebuildSummaryPills(){
+  summaryPills.innerHTML='';
+  boxesDiv.querySelectorAll('.box-item').forEach(n=>{
+    const type=n.querySelector('.b-type').value;
+    const l=n.querySelector('.small-dims')?.innerText||'';
+    const pill=document.createElement('div');
+    pill.className='pill';
+    pill.innerText=`${type} • ${l}`;
+    summaryPills.appendChild(pill);
   });
 }
 
-function updateBoxFromCatalogue(boxDiv, boxType) {
-  if (!boxType || !BOX_CATALOGUE[boxType]) return;
-  
-  const spec = BOX_CATALOGUE[boxType];
-  
-  boxDiv.querySelector('.box-length').value = spec.dims[0];
-  boxDiv.querySelector('.box-width').value = spec.dims[1];
-  boxDiv.querySelector('.box-height').value = spec.dims[2];
-  boxDiv.querySelector('.box-weight').value = spec.weight;
-  boxDiv.querySelector('.box-stack-weight').value = spec.max_stack_weight || '';
-  boxDiv.querySelector('.box-fragility').value = spec.fragility || 'normal';
-  boxDiv.querySelector('.box-orientation').value = spec.orientation || 'any';
-  boxDiv.querySelector('.box-stackable').checked = spec.stackable !== false;
-}
-
-function removeBox(button) {
-  button.closest('.box-item').remove();
-}
-
-function setupEventListeners() {
-  document.getElementById('add-box').addEventListener('click', addBoxForm);
-  document.getElementById('optimize-btn').addEventListener('click', optimizeLoading);
-}
-
-function gatherBoxData() {
-  const boxes = [];
-  const boxItems = document.querySelectorAll('.box-item');
-  
-  boxItems.forEach(boxDiv => {
-    const typeSelect = boxDiv.querySelector('.box-type-select');
-    const boxType = typeSelect.value || 'Custom Box';
-    
-    const length = parseFloat(boxDiv.querySelector('.box-length').value);
-    const width = parseFloat(boxDiv.querySelector('.box-width').value);
-    const height = parseFloat(boxDiv.querySelector('.box-height').value);
-    const weight = parseFloat(boxDiv.querySelector('.box-weight').value);
-    const quantity = parseInt(boxDiv.querySelector('.box-quantity').value);
-    const maxStackWeight = parseFloat(boxDiv.querySelector('.box-stack-weight').value) || null;
-    
-    if (length && width && height && weight && quantity) {
-      boxes.push({
-        box_type: boxType,
-        length_mm: length,
-        width_mm: width,
-        height_mm: height,
-        weight_kg: weight,
-        quantity: quantity,
-        fragility: boxDiv.querySelector('.box-fragility').value,
-        orientation_constraint: boxDiv.querySelector('.box-orientation').value,
-        loading_priority: boxDiv.querySelector('.box-priority').value,
-        stackable: boxDiv.querySelector('.box-stackable').checked,
-        requires_bottom_support: boxDiv.querySelector('.box-bottom-support').checked,
-        max_stack_weight_kg: maxStackWeight,
-        min_support_percentage: 80.0
-      });
-    }
+function buildRequest(){
+  const boxes=[];
+  boxesDiv.querySelectorAll('.box-item').forEach(n=>{
+    const type=n.querySelector('.b-type').value;
+    const [l,w,h]=BOX_CATALOGUE[type].dims.map(Number);
+    const payload=n.querySelector('.b-payload').value?parseFloat(n.querySelector('.b-payload').value):null;
+    const qty=n.querySelector('.b-qty').value?parseInt(n.querySelector('.b-qty').value):null;
+    boxes.push({ box_type:type, external_length_mm:l, external_width_mm:w, external_height_mm:h, max_payload_kg:payload, quantity:qty });
   });
-  
-  return boxes;
-}
 
-function gatherTruckData() {
-  const truckSelect = document.getElementById('truck-select');
-  const selectedIndex = parseInt(truckSelect.value);
-  
-  if (!isNaN(selectedIndex) && defaultTrucks[selectedIndex]) {
-    return defaultTrucks[selectedIndex];
-  }
-  
-  // Check for custom truck data
-  const customName = document.getElementById('custom-truck-name').value;
-  const customLength = parseFloat(document.getElementById('custom-length').value);
-  const customWidth = parseFloat(document.getElementById('custom-width').value);
-  const customHeight = parseFloat(document.getElementById('custom-height').value);
-  const customPayload = parseFloat(document.getElementById('custom-payload').value);
-  const customWheelbase = parseFloat(document.getElementById('custom-wheelbase').value);
-  
-  if (customName && customLength && customWidth && customHeight && customPayload && customWheelbase) {
-    return {
-      name: customName,
-      internal_length_mm: customLength,
-      internal_width_mm: customWidth,
-      internal_height_mm: customHeight,
-      max_payload_kg: customPayload,
-      front_axle_limit_kg: customPayload * 0.35, // Estimate 35% front
-      rear_axle_limit_kg: customPayload * 0.65,  // Estimate 65% rear
-      wheelbase_mm: customWheelbase,
-      loading_height_mm: 1200,
-      max_center_of_gravity_height_mm: customHeight * 0.75
-    };
-  }
-  
-  return null;
-}
+  const truckNames=(document.getElementById('truckNames').value||'').split(',').map(s=>s.trim()).filter(Boolean);
+  const truckDimsRaw=(document.getElementById('truckDims').value||'').split(';').map(s=>s.trim()).filter(Boolean);
+  const truckPayloads=(document.getElementById('truckPayloads').value||'').split(',').map(s=>s.trim()).filter(Boolean);
 
-async function optimizeLoading() {
-  const button = document.getElementById('optimize-btn');
-  const resultsContent = document.getElementById('results-content');
-  
-  // Gather data
-  const boxes = gatherBoxData();
-  const truck = gatherTruckData();
-  
-  if (boxes.length === 0) {
-    alert('Please add at least one box specification.');
-    return;
-  }
-  
-  if (!truck) {
-    alert('Please select a truck or enter custom truck specifications.');
-    return;
-  }
-  
-  // Show loading state
-  button.disabled = true;
-  button.innerHTML = '<span class="loader"></span> Optimizing...';
-  resultsContent.innerHTML = '<div style="text-align: center; padding: 40px;"><div class="loader" style="margin-bottom: 15px;"></div><p>Running real-world optimization with physics simulation...</p></div>';
-  
-  try {
-    const response = await fetch('http://127.0.0.1:8000/api/optimize-real-world', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        boxes: boxes,
-        truck: truck,
-        route_stops: []
-      })
+  let trucks=null;
+  if(truckNames.length && truckDimsRaw.length===truckNames.length){
+    trucks=truckNames.map((name,i)=>{
+      const dims=truckDimsRaw[i].split('x').map(x=>parseFloat(x));
+      return { name, internal_length_mm:dims[0], internal_width_mm:dims[1], internal_height_mm:dims[2], payload_kg: truckPayloads[i]?parseFloat(truckPayloads[i]):undefined };
     });
+  }
+
+  const route_types=[];
+  if(document.getElementById('highway').checked) route_types.push('Highway');
+  if(document.getElementById('semi').checked) route_types.push('Semi-Urban');
+  if(document.getElementById('village').checked) route_types.push('Village');
+
+  return { boxes, trucks, route_source:document.getElementById('source').value||undefined, route_dest:document.getElementById('dest').value||undefined, route_types };
+}
+
+// --- API Call Logic (Newly Added) ---
+document.getElementById('optBtn').onclick = async () => {
+    const btn = document.getElementById('optBtn');
+    const resultsNode = document.getElementById('results');
     
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+    btn.disabled = true;
+    btn.innerHTML = `<span class="loader"></span> Optimizing...`;
+    resultsNode.innerHTML = `<div class="muted">Processing your request... please wait.</div>`;
+    
+    const requestData = buildRequest();
+
+    try {
+        // NOTE: You may need to change this URL to match where your Python server is running.
+        const response = await fetch('http://127.0.0.1:8000/api/optimize', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestData),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ detail: 'Failed to parse error response from server.' }));
+            throw new Error(errorData.detail || `Request failed with status ${response.status}`);
+        }
+
+        const resultsData = await response.json();
+        renderResultsArray(resultsData);
+
+    } catch (error) {
+        console.error('Error optimizing:', error);
+        resultsNode.innerHTML = `<div class="muted" style="color:#d9534f; font-weight:bold;">An error occurred: ${error.message}</div>`;
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = `⚡ Optimize Trucks`;
     }
+};
+
+
+// --- 3D Visualization and Results Rendering ---
+function create3DVisualization(container, truckData) {
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xf0f8ff);
+  
+  const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 20000);
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(container.clientWidth, container.clientHeight);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  
+  container.appendChild(renderer.domElement);
+
+  const truckDims = truckData.truck_dimensions || {};
+  const truckLength = truckDims.length_mm || 9750;
+  const truckWidth = truckDims.width_mm || 2440;
+  const truckHeight = truckDims.height_mm || 2440;
+  
+  const truckGeometry = new THREE.BoxGeometry(truckLength, truckHeight, truckWidth);
+  const truckMaterial = new THREE.MeshBasicMaterial({ 
+    color: 0x333333, 
+    wireframe: true, 
+    transparent: true, 
+    opacity: 0.3 
+  });
+  const truckMesh = new THREE.Mesh(truckGeometry, truckMaterial);
+  scene.add(truckMesh);
+
+  const floorGeometry = new THREE.PlaneGeometry(truckLength, truckWidth);
+  const floorMaterial = new THREE.MeshLambertMaterial({ 
+    color: 0xcccccc, 
+    transparent: true, 
+    opacity: 0.5 
+  });
+  const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+  floor.rotation.x = -Math.PI / 2;
+  floor.position.y = -truckHeight / 2;
+  floor.receiveShadow = true;
+  scene.add(floor);
+
+  const boxTypes = Object.keys(truckData.box_counts_by_type || {});
+  const colorMap = {};
+  boxTypes.forEach((type, index) => {
+    colorMap[type] = BOX_COLORS[index % BOX_COLORS.length];
+  });
+
+  if (truckData.placements_sample && truckData.placements_sample.length > 0) {
+    truckData.placements_sample.forEach((placement, index) => {
+      if (!placement.position || !placement.dims_mm) return;
+      
+      const [x, y, z] = placement.position;
+      const [width, height, depth] = placement.dims_mm;
+      
+      if (!width || !height || !depth || width <= 0 || height <= 0 || depth <= 0) return;
+      
+      const boxGeometry = new THREE.BoxGeometry(width, height, depth);
+      const boxColor = colorMap[placement.name] || 0x888888;
+      const boxMaterial = new THREE.MeshLambertMaterial({ 
+        color: boxColor,
+        transparent: true,
+        opacity: 0.8
+      });
+      
+      const edges = new THREE.EdgesGeometry(boxGeometry);
+      const lineMaterial = new THREE.LineBasicMaterial({ color: 0x000000, opacity: 0.3 });
+      const wireframe = new THREE.LineSegments(edges, lineMaterial);
+      
+      const box = new THREE.Mesh(boxGeometry, boxMaterial);
+      
+      box.position.set(
+        x + width/2 - truckLength/2,
+        y + height/2 - truckHeight/2, 
+        z + depth/2 - truckWidth/2
+      );
+      
+      wireframe.position.copy(box.position);
+      
+      box.castShadow = true;
+      box.userData = { 
+        name: placement.name, 
+        weight: placement.weight_kg,
+        dims: [width, height, depth],
+        originalPosition: [x, y, z]
+      };
+      
+      scene.add(box);
+      scene.add(wireframe);
+    });
+  }
+
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+  scene.add(ambientLight);
+  
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+  directionalLight.position.set(truckLength, truckHeight * 2, truckWidth);
+  directionalLight.castShadow = true;
+  directionalLight.shadow.mapSize.width = 1024;
+  directionalLight.shadow.mapSize.height = 1024;
+  scene.add(directionalLight);
+
+  camera.position.set(truckLength * 1.5, truckHeight, truckWidth * 1.5);
+  camera.lookAt(0, 0, 0);
+
+  let mouseDown = false;
+  let mouseX = 0;
+  let mouseY = 0;
+  let targetRotationX = 0;
+  let targetRotationY = 0;
+  let rotationX = 0;
+  let rotationY = 0;
+
+  renderer.domElement.addEventListener('mousedown', (e) => {
+    mouseDown = true;
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+  });
+
+  renderer.domElement.addEventListener('mousemove', (e) => {
+    if (!mouseDown) return;
+    const deltaX = e.clientX - mouseX;
+    const deltaY = e.clientY - mouseY;
+    targetRotationY += deltaX * 0.01;
+    targetRotationX += deltaY * 0.01;
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+  });
+
+  renderer.domElement.addEventListener('mouseup', () => { mouseDown = false; });
+  renderer.domElement.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const scale = e.deltaY > 0 ? 1.1 : 0.9;
+    camera.position.multiplyScalar(scale);
+  });
+
+  function animate() {
+    requestAnimationFrame(animate);
+    rotationX += (targetRotationX - rotationX) * 0.1;
+    rotationY += (targetRotationY - rotationY) * 0.1;
     
-    const result = await response.json();
-    displayResults(result);
+    const radius = camera.position.length();
+    camera.position.x = radius * Math.sin(rotationY) * Math.cos(rotationX);
+    camera.position.y = radius * Math.sin(rotationX);
+    camera.position.z = radius * Math.cos(rotationY) * Math.cos(rotationX);
+    camera.lookAt(0, 0, 0);
     
-  } catch (error) {
-    console.error('Optimization failed:', error);
-    resultsContent.innerHTML = `
-      <div class="alert alert-error">
-        <strong>Optimization Failed:</strong> ${error.message}
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  const resizeObserver = new ResizeObserver(() => {
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+    renderer.setSize(width, height);
+  });
+  resizeObserver.observe(container);
+
+  return { scene, camera, renderer, colorMap };
+}
+
+function renderResultsArray(data){
+  if(!Array.isArray(data)||data.length===0){
+    document.getElementById('results').innerHTML=`<div class="muted">No viable packing solution found for the given boxes and trucks.</div>`;
+    return;
+  }
+  const container=document.createElement('div');
+  container.className='results-grid';
+
+  data.forEach((r, truckIndex) => {
+    const truckName=r.truck_name||'Truck';
+    const units=r.units_packed_total??0;
+    const cube=r.cube_utilisation_pct??0;
+    const payloadKg=r.payload_used_kg??0;
+    const payloadPct=r.payload_used_pct??0;
+    const boxes=r.box_counts_by_type||{};
+
+    const card=document.createElement('div');
+    card.className='truck-card';
+    card.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <div style="font-weight:800;font-size:14px;color:var(--accent-contrast)">${truckName}</div>
+          <div class="metric-small muted">${units} units</div>
+        </div>
+      </div>
+      <div style="display:flex; justify-content:space-between; gap:8px; margin-top:10px;">
+        <div>
+          <div class="metric">${cube.toFixed(2)}%</div>
+          <div class="metric-small">Cube Utilisation</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="metric">${payloadKg.toFixed(1)} kg</div>
+          <div class="metric-small">Payload Used (${(payloadPct||0).toFixed(1)}%)</div>
+        </div>
       </div>
     `;
-  } finally {
-    button.disabled = false;
-    button.innerHTML = '🚀 Optimize Loading';
-  }
-}
 
-function displayResults(result) {
-  const resultsContent = document.getElementById('results-content');
-  
-  // Determine stability status
-  const stability = result.stability_analysis;
-  let stabilityClass = 'stability-safe';
-  let stabilityIcon = '✅';
-  let stabilityText = 'Safe & Stable';
-  
-  if (stability.issues && stability.issues.length > 0) {
-    stabilityClass = 'stability-danger';
-    stabilityIcon = '⛔';
-    stabilityText = 'Unsafe - Issues Found';
-  } else if (stability.warnings && stability.warnings.length > 0) {
-    stabilityClass = 'stability-warning';
-    stabilityIcon = '⚠️';
-    stabilityText = 'Caution - Warnings';
-  }
-  
-  resultsContent.innerHTML = `
-    <div class="stability-indicator ${stabilityClass}">
-      ${stabilityIcon} ${stabilityText}
-    </div>
-    
-    ${stability.issues && stability.issues.length > 0 ? `
-      <div class="alert alert-error">
-        <strong>Safety Issues:</strong>
-        <ul>
-          ${stability.issues.map(issue => `<li>${issue}</li>`).join('')}
-        </ul>
-      </div>
-    ` : ''}
-    
-    ${stability.warnings && stability.warnings.length > 0 ? `
-      <div class="alert alert-warning">
-        <strong>Warnings:</strong>
-        <ul>
-          ${stability.warnings.map(warning => `<li>${warning}</li>`).join('')}
-        </ul>
-      </div>
-    ` : ''}
-    
-    <div class="metrics-grid">
-      <div class="metric-card">
-        <div class="metric-value">${result.packed_items}/${result.total_items}</div>
-        <div class="metric-label">Items Packed</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-value">${result.volume_utilization_pct}%</div>
-        <div class="metric-label">Volume Utilization</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-value">${result.weight_utilization_pct}%</div>
-        <div class="metric-label">Weight Utilization</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-value">${stability.weight_distribution_rear_pct.toFixed(1)}%</div>
-        <div class="metric-label">Rear Axle Weight</div>
-      </div>
-    </div>
-    
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
-      <div>
-        <h3>📋 Loading Instructions</h3>
-        <div class="instructions-list">
-          ${result.loading_instructions.map(instruction => `
-            <div class="instruction-item">${instruction}</div>
-          `).join('')}
-        </div>
-      </div>
+    if (units > 0) {
+      const vizContainer = document.createElement('div');
+      vizContainer.className = 'viz-container';
+      vizContainer.id = `viz-${truckIndex}`;
+      card.appendChild(vizContainer);
       
-      <div>
-        <h3>📊 Technical Details</h3>
-        <div class="instructions-list">
-          <div class="instruction-item">
-            <strong>Center of Gravity:</strong> 
-            (${stability.center_of_gravity.map(v => v.toFixed(0)).join(', ')})mm
-          </div>
-          <div class="instruction-item">
-            <strong>Axle Weights:</strong> 
-            Front: ${stability.axle_weights[0].toFixed(0)}kg, 
-            Rear: ${stability.axle_weights[1].toFixed(0)}kg
-          </div>
-          <div class="instruction-item">
-            <strong>Total Weight:</strong> ${result.total_weight_kg}kg
-          </div>
-          <div class="instruction-item">
-            <strong>Truck:</strong> ${result.truck_name}
-          </div>
-          ${result.unpacked_items.length > 0 ? `
-            <div class="instruction-item">
-              <strong>Unpacked Items:</strong> ${result.unpacked_items.join(', ')}
-            </div>
-          ` : ''}
-        </div>
-      </div>
-    </div>
-    
-    <div class="visualization-container">
-      <h3>🎯 3D Truck Visualization</h3>
-      <div class="truck-3d-view">
-        3D visualization would render here<br>
-        <small>(Showing ${result.packed_items} items in optimized positions)</small>
-      </div>
-    </div>
-  `;
+      setTimeout(() => {
+        try {
+          const viz = create3DVisualization(vizContainer, r);
+          vizContainer.vizData = viz;
+          
+          if (Object.keys(boxes).length > 0) {
+            const legend = document.createElement('div');
+            legend.className = 'legend';
+            legend.innerHTML = '<div style="font-weight:700;margin-bottom:4px;">Box Types:</div>';
+            Object.entries(boxes).forEach(([boxType, count]) => {
+              const color = viz.colorMap[boxType] || 0x888888;
+              const hexColor = '#' + new THREE.Color(color).getHexString();
+              legend.innerHTML += `<div class="legend-item"><div class="legend-color" style="background-color: ${hexColor}"></div><span>${boxType} (${count})</span></div>`;
+            });
+            vizContainer.appendChild(legend);
+          }
+        } catch (error) {
+          console.error('Error creating 3D visualization:', error);
+          vizContainer.innerHTML = '<div style="padding:20px;text-align:center;color:#666;">3D visualization unavailable</div>';
+        }
+      }, 100);
+    }
+
+    const list=document.createElement('div');
+    list.style.marginTop='10px';
+    let boxListHTML = `<div style="font-weight:700;font-size:13px;color:#0f172a">Boxes</div><div style="margin-top:6px;">`;
+    for(const [k,v] of Object.entries(boxes)){
+      boxListHTML += `<div style="display:flex;justify-content:space-between;font-size:13px;color:#123;margin-top:6px;"><div style="color:var(--muted)">${k}</div><div style="font-weight:800">${v}</div></div>`;
+    }
+    boxListHTML += `</div>`;
+    list.innerHTML = boxListHTML;
+    card.appendChild(list);
+
+    if(r.notes&&r.notes.length){
+      const note=document.createElement('div');
+      note.style.marginTop='10px';
+      note.style.fontSize='12px';
+      note.style.color='var(--muted)';
+      note.innerText='Notes: '+r.notes.slice(0,2).join(' • ');
+      card.appendChild(note);
+    }
+    container.appendChild(card);
+  });
+
+  const resultsNode=document.getElementById('results');
+  resultsNode.innerHTML='';
+  resultsNode.appendChild(container);
 }
 
-// Initialize with one box form
-addBoxForm();
+// Global functions for 3D controls (not part of original code, but useful)
+// These would need controls in the HTML to be useful.
+// window.resetView = ...
+// window.toggleWireframe = ...
 </script>
-
 </body>
 </html>
