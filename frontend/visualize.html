@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>3D Truck Visualization</title>
+<style>
+  body { margin:0; overflow:hidden; }
+  canvas { display:block; }
+</style>
+</head>
+<body>
+
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.module.js';
+import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/controls/OrbitControls.js';
+
+// --- Scene & Camera ---
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xf7fbf9);
+
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 1, 5000);
+camera.position.set(1000, 1000, 2000);
+
+// --- Renderer ---
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+// --- Controls ---
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 500, 0);
+controls.update();
+
+// --- Light ---
+const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+scene.add(ambient);
+const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+dirLight.position.set(1000, 2000, 1000);
+scene.add(dirLight);
+
+// --- Truck (wireframe box) ---
+const truckLength = 9750;
+const truckWidth = 2440;
+const truckHeight = 2440;
+
+const truckGeometry = new THREE.BoxGeometry(truckLength, truckHeight, truckWidth);
+const truckEdges = new THREE.EdgesGeometry(truckGeometry);
+const truckLine = new THREE.LineSegments(truckEdges, new THREE.LineBasicMaterial({color:0x16a34a, linewidth:2}));
+truckLine.position.y = truckHeight/2;
+scene.add(truckLine);
+
+// --- Example Boxes ---
+const boxes = [
+  {dims:[600,400,120], pos:[0,60,0], color:0xff5555},
+  {dims:[400,300,235], pos:[600,117.5,0], color:0x5555ff},
+  {dims:[400,300,120], pos:[0,60,400], color:0xffff00},
+];
+
+boxes.forEach(b=>{
+  const [l,h,w] = b.dims;
+  const geom = new THREE.BoxGeometry(l,h,w);
+  const mat = new THREE.MeshStandardMaterial({color:b.color, opacity:0.8, transparent:true});
+  const mesh = new THREE.Mesh(geom, mat);
+  mesh.position.set(...b.pos.map((v,i)=> i===1 ? v : v - truckWidth/2)); // Y-axis is up
+  scene.add(mesh);
+});
+
+// --- Grid Helper ---
+const grid = new THREE.GridHelper(10000, 50, 0xcccccc, 0xeeeeee);
+scene.add(grid);
+
+// --- Resize ---
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// --- Animate ---
+function animate(){
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+
+</script>
+</body>
+</html>

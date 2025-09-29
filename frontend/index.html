@@ -1,666 +1,829 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<title>🚛 Truck Optimiser — 3D Demo</title>
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Real-World 3D Truck Optimization System</title>
 <style>
-:root{
-  --bg-1:#f7fbf9;
-  --bg-2:#eef6f1;
-  --card:#ffffff;
-  --accent:#16a34a;
-  --accent-2:#10b981;
-  --muted:#6b7280;
-  --panel-shadow:0 8px 30px rgba(2,6,23,0.06);
-  --glass:rgba(255,255,255,0.6);
-  --accent-contrast:#063f2f;
-}
-html,body{height:100%;}
-body{
-  font-family:Inter,sans-serif;
-  background:linear-gradient(135deg,var(--bg-1),var(--bg-2));
-  color:#0f172a;
-  padding:28px;
-  line-height:1.45;
-  margin:0;
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
 }
 
-h2{
-  margin:0 0 12px 0;
-  font-size:18px;
-  font-weight:700;
-  color:var(--accent-contrast);
-  display:flex;
-  align-items:center;
-  gap:10px;
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
 }
 
-.card{
-  background:var(--card);
-  border-radius:14px;
-  padding:18px;
-  box-shadow:var(--panel-shadow);
-  margin-bottom:18px;
-  transition:transform .16s ease;
+h1 {
+    text-align: center;
+    color: #2d3436;
+    margin-bottom: 30px;
+    font-size: 2.5em;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
-.card.small{padding:12px;border-radius:12px;}
-label{display:block;font-size:13px;margin-bottom:6px;color:var(--muted);font-weight:600;}
-input[type="text"], input[type="number"], select{
-  width:100%;padding:8px 10px;border-radius:10px;border:1px solid #e6eef0;background:#fbfdfb;
-}
-.row{display:flex;gap:12px;flex-wrap:wrap;}
-.col{flex:1;min-width:200px;}
-button{
-  background:linear-gradient(90deg,var(--accent),var(--accent-2));
-  color:white;border:none;padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:700;
-  box-shadow:0 6px 18px rgba(16,185,129,0.14);
-}
-button.secondary{background:#f3f4f6;color:#111;box-shadow:none;border:1px solid #e6eef0;}
-button:disabled{opacity:.6;cursor:wait;}
-.muted{color:var(--muted);font-size:13px;}
-.small{font-size:13px;padding:6px 10px;}
-.box-item{
-  border:1px solid #eef2f7;
-  padding:12px;
-  border-radius:12px;
-  margin-bottom:10px;
-  background:linear-gradient(180deg,#ffffff,#fbfffb);
-  display:flex;flex-direction:column;gap:8px;
-}
-.box-top{display:flex;gap:12px;align-items:center;}
-.box-top .meta{font-size:13px;color:#0f172a;font-weight:600;}
-.dims{font-size:12px;color:var(--muted);margin-top:4px;}
-.results-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;}
-.truck-card{
-  padding:12px;border-radius:10px;background:linear-gradient(180deg,#ffffff,#f7fff7);border:1px solid #ecfdf5;
-  position:relative;
-}
-.metric{font-weight:700;font-size:18px;color:var(--accent-contrast);}
-.metric-small{font-size:12px;color:var(--muted);}
-.loader{
-  display:inline-block;width:18px;height:18px;
-  border-radius:50%;
-  border:3px solid rgba(255,255,255,0.2);
-  border-top-color:white;
-  animation:spin 1s linear infinite;
-  margin-right:8px;
-}
-@keyframes spin{to{transform:rotate(360deg)}}
-.boxes-compact{display:flex;gap:10px;flex-wrap:wrap;}
-.pill{
-  background:linear-gradient(90deg,#ecfdf5,#dcfce7);
-  border:1px solid #bbf7d0;
-  padding:6px 8px;border-radius:999px;font-size:12px;color:#065f46;font-weight:700;
-}
-.note{font-size:12px;color:var(--muted);margin-top:8px;}
-
-/* 3D Visualization Styles */
-.viz-container {
-  width: 100%;
-  height: 300px;
-  border-radius: 8px;
-  overflow: hidden;
-  margin-top: 12px;
-  border: 1px solid #e6eef0;
-  position: relative;
+.section {
+    margin-bottom: 30px;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-.viz-controls {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 100;
-  display: flex;
-  gap: 6px;
+.section-title {
+    font-size: 1.3em;
+    color: #2d3436;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #667eea;
 }
 
-.viz-control-btn {
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid #ddd;
-  padding: 6px 10px;
-  border-radius: 6px;
-  font-size: 12px;
-  cursor: pointer;
-  transition: background 0.2s;
+.form-group {
+    margin-bottom: 15px;
 }
 
-.viz-control-btn:hover {
-  background: rgba(255, 255, 255, 1);
+label {
+    display: block;
+    margin-bottom: 5px;
+    color: #555;
+    font-weight: 500;
 }
 
-.viz-control-btn.active {
-  background: var(--accent);
-  color: white;
-  border-color: var(--accent);
+input, select {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #e0e0e0;
+    border-radius: 5px;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+input:focus, select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.box-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.box-item {
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+    position: relative;
+}
+
+.box-item h4 {
+    color: #495057;
+    margin-bottom: 10px;
+}
+
+.box-dims {
+    font-size: 12px;
+    color: #6c757d;
+    margin-bottom: 10px;
+}
+
+.remove-box {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 25px;
+    height: 25px;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+}
+
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-right: 10px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-add {
+    background: #28a745;
+    color: white;
+}
+
+.results {
+    margin-top: 30px;
+}
+
+.truck-result {
+    margin-bottom: 20px;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.truck-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.truck-name {
+    font-size: 1.5em;
+    color: #2d3436;
+}
+
+.metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.metric {
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.metric-value {
+    font-size: 2em;
+    font-weight: bold;
+    color: #667eea;
+}
+
+.metric-label {
+    font-size: 0.9em;
+    color: #6c757d;
+    margin-top: 5px;
+}
+
+.visualization-container {
+    width: 100%;
+    height: 500px;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    position: relative;
+    background: #f0f0f0;
+    margin-bottom: 20px;
+}
+
+.controls {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 100;
+    display: flex;
+    gap: 10px;
+}
+
+.control-btn {
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.control-btn:hover {
+    background: white;
+}
+
+.info-panel {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    max-width: 200px;
+    z-index: 100;
 }
 
 .legend {
-  position: absolute;
-  bottom: 10px;
-  left: 10px;
-  background: rgba(255, 255, 255, 0.95);
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 11px;
-  z-index: 100;
-  max-width: 200px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
 }
 
 .legend-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    background: white;
+    border-radius: 5px;
+    font-size: 12px;
 }
 
 .legend-color {
-  width: 12px;
-  height: 12px;
-  border-radius: 2px;
-  border: 1px solid #ccc;
+    width: 20px;
+    height: 20px;
+    border-radius: 3px;
+}
+
+.verification-panel {
+    margin-top: 20px;
+    padding: 15px;
+    background: #e7f3ff;
+    border-radius: 8px;
+    border: 1px solid #b3d9ff;
+}
+
+.verification-title {
+    font-weight: bold;
+    color: #0066cc;
+    margin-bottom: 10px;
+}
+
+.verification-item {
+    margin: 5px 0;
+    font-size: 14px;
+}
+
+.verification-pass {
+    color: #28a745;
+}
+
+.verification-fail {
+    color: #dc3545;
+}
+
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: #6c757d;
+}
+
+.spinner {
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #667eea;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 </style>
 </head>
 <body>
-
-<div class="card">
-  <h2>📦 Custom Outer Box Details</h2>
-  <div id="boxes"></div>
-  <div style="margin-top:10px;">
-    <button id="addBox" class="small">+ Add Another Box Type</button>
-    <span class="muted" style="margin-left:12px;">Pick from PRD catalogue. Edit qty or payload if needed.</span>
-  </div>
-</div>
-
-<div class="card">
-  <h2>🛣️ Route & Trucks</h2>
-  <div class="row">
-    <div class="col">
-      <label>Source</label>
-      <input id="source" type="text" placeholder="City or depot" />
-    </div>
-    <div class="col">
-      <label>Destination</label>
-      <input id="dest" type="text" placeholder="City or depot" />
-    </div>
-  </div>
-
-  <div style="margin-top:12px" class="row">
-    <div class="col">
-      <label>Route Type</label>
-      <div style="display:flex; gap:12px; align-items:center;">
-        <label><input type="checkbox" id="highway" /> Highway</label>
-        <label><input type="checkbox" id="semi" /> Semi-Urban</label>
-        <label><input type="checkbox" id="village" /> Village</label>
-      </div>
+<div class="container">
+    <h1>🚛 Real-World 3D Truck Optimization System</h1>
+    
+    <div class="section">
+        <h2 class="section-title">📦 Box Configuration</h2>
+        <div id="boxList" class="box-grid"></div>
+        <button class="btn btn-add" onclick="addBox()">+ Add Box Type</button>
     </div>
 
-    <div class="col">
-      <label>Custom Trucks (optional)</label>
-      <input id="truckNames" placeholder="22 ft Truck,32 ft Single Axle,32 ft Multi Axle" />
-      <div style="display:flex; gap:8px; margin-top:6px;">
-        <input id="truckDims" placeholder="6700x2440x2440;9750x2440x2440;9750x2440x2440" />
-        <input id="truckPayloads" placeholder="7500,9000,16000" />
-      </div>
-      <div class="note">Leave blank to use default PRD trucks.</div>
+    <div class="section">
+        <h2 class="section-title">🚚 Truck Selection</h2>
+        <div class="form-group">
+            <label>Select Trucks to Optimize:</label>
+            <div id="truckSelection">
+                <label><input type="checkbox" checked value="22ft"> 22 ft Truck (6700×2440×2440mm, 7500kg)</label><br>
+                <label><input type="checkbox" checked value="32ft-single"> 32 ft Single Axle (9750×2440×2440mm, 9000kg)</label><br>
+                <label><input type="checkbox" checked value="32ft-multi"> 32 ft Multi Axle (9750×2440×2440mm, 16000kg)</label>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
 
-<div style="display:flex; gap:14px; margin-bottom:18px;">
-  <button id="optBtn">⚡ Optimize Trucks</button>
-  <button id="resetBtn" class="secondary">Reset</button>
-  <div style="flex:1"></div>
-  <div class="boxes-compact" id="summaryPills"></div>
-</div>
+    <div class="section">
+        <button class="btn btn-primary" onclick="optimize()">🎯 Optimize Loading</button>
+        <button class="btn btn-secondary" onclick="resetAll()">🔄 Reset</button>
+    </div>
 
-<div class="card">
-  <h2>📊 Results with 3D Visualization</h2>
-  <div id="results" class="muted">No results yet.</div>
+    <div id="results" class="results"></div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script>
-const BOX_CATALOGUE = {
-  "Crate 400x300x120": { dims:[400,300,120], weight:15 },
-  "Crate 400x300x235": { dims:[400,300,235], weight:15 },
-  "Crate 600x400x120": { dims:[600,400,120], weight:15 },
-  "Crate 600x400x180": { dims:[600,400,180], weight:15 },
-  "Crate 600x400x235": { dims:[600,400,235], weight:15 },
-  "Crate 600x400x348": { dims:[600,400,348], weight:15 },
-  "PP Box": { dims:[1900,1200,800], weight:15 },
-  "FLC 1200x1000x595": { dims:[1200,1000,595], weight:800 },
-  "FLC 1200x1000x795": { dims:[1200,1000,795], weight:800 },
-  "FLC 1200x1000x975": { dims:[1200,1000,975], weight:800 },
-  "FLC 1200x1000x1200": { dims:[1200,1000,1200], weight:800 },
-  "PLS 1200x800x450": { dims:[1200,800,450], weight:450 },
-  "PLS 1200x800x650": { dims:[1200,800,650], weight:450 },
-  "PLS 1200x800x800": { dims:[1200,800,800], weight:450 },
-  "PLS 1200x800x1000": { dims:[1200,800,1000], weight:450 },
-  "PLS 1200x800x1100": { dims:[1200,800,1100], weight:450 },
-  "PLS 1200x800x1200": { dims:[1200,800,1200], weight:450 },
-  "PLS 1200x1000x450": { dims:[1200,1000,450], weight:500 },
-  "PLS 1200x1000x650": { dims:[1200,1000,650], weight:500 },
-  "PLS 1200x1000x800": { dims:[1200,1000,800], weight:500 },
-  "PLS 1200x1000x1000": { dims:[1200,1000,1000], weight:500 },
-  "PLS 1200x1000x1100": { dims:[1200,1000,1100], weight:500 },
-  "PLS 1200x1000x1200": { dims:[1200,1000,1200], weight:500 },
+// Box catalog from the original code
+const BOX_CATALOG = {
+    "Crate 400x300x120": { dims: [400, 300, 120], weight: 15 },
+    "Crate 400x300x235": { dims: [400, 300, 235], weight: 15 },
+    "Crate 600x400x120": { dims: [600, 400, 120], weight: 15 },
+    "Crate 600x400x180": { dims: [600, 400, 180], weight: 15 },
+    "Crate 600x400x235": { dims: [600, 400, 235], weight: 15 },
+    "Crate 600x400x348": { dims: [600, 400, 348], weight: 15 },
+    "PP Box": { dims: [1900, 1200, 800], weight: 15 },
+    "FLC 1200x1000x595": { dims: [1200, 1000, 595], weight: 800 },
+    "FLC 1200x1000x795": { dims: [1200, 1000, 795], weight: 800 },
+    "FLC 1200x1000x975": { dims: [1200, 1000, 975], weight: 800 },
+    "FLC 1200x1000x1200": { dims: [1200, 1000, 1200], weight: 800 },
+    "PLS 1200x800x450": { dims: [1200, 800, 450], weight: 450 },
+    "PLS 1200x800x650": { dims: [1200, 800, 650], weight: 450 },
+    "PLS 1200x800x800": { dims: [1200, 800, 800], weight: 450 },
+    "PLS 1200x800x1000": { dims: [1200, 800, 1000], weight: 450 },
+    "PLS 1200x800x1100": { dims: [1200, 800, 1100], weight: 450 },
+    "PLS 1200x800x1200": { dims: [1200, 800, 1200], weight: 450 },
+    "PLS 1200x1000x450": { dims: [1200, 1000, 450], weight: 500 },
+    "PLS 1200x1000x650": { dims: [1200, 1000, 650], weight: 500 },
+    "PLS 1200x1000x800": { dims: [1200, 1000, 800], weight: 500 },
+    "PLS 1200x1000x1000": { dims: [1200, 1000, 1000], weight: 500 },
+    "PLS 1200x1000x1100": { dims: [1200, 1000, 1100], weight: 500 },
+    "PLS 1200x1000x1200": { dims: [1200, 1000, 1200], weight: 500 }
 };
 
-// Color palette for different box types
-const BOX_COLORS = [
-  0xff6b6b, 0x4ecdc4, 0x45b7d1, 0xf9ca24, 0xf0932b,
-  0xeb4d4b, 0x6c5ce7, 0xa55eea, 0x26de81, 0xfd79a8,
-  0xe17055, 0x74b9ff, 0x00b894, 0xfdcb6e, 0xe84393
-];
-
-const boxesDiv = document.getElementById('boxes');
-const summaryPills = document.getElementById('summaryPills');
-
-function conciseDims(dims){ return `${dims[0]}×${dims[1]}×${dims[2]} mm`; }
-
-function createBoxRow(defaults={}){
-  const container = document.createElement('div');
-  container.className = 'box-item';
-  let options = "";
-  Object.keys(BOX_CATALOGUE).forEach(name=>{
-    const sel = defaults.box_type===name?"selected":"";
-    options+=`<option value="${name}" ${sel}>${name}</option>`;
-  });
-
-  container.innerHTML = `
-    <div class="box-top">
-      <div style="flex:1;">
-        <label class="muted">Box Type</label>
-        <select class="b-type">${options}</select>
-        <div class="dims muted small-dims"></div>
-      </div>
-      <div style="width:110px;">
-        <label class="muted">Qty (opt)</label>
-        <input class="b-qty" type="number" min="1" placeholder="auto" value="${defaults.quantity||''}" />
-      </div>
-      <div style="width:120px;">
-        <label class="muted">Max payload (kg)</label>
-        <input class="b-payload" type="number" placeholder="kg" value="${defaults.max_payload_kg||''}" />
-      </div>
-      <div style="width:56px; display:flex; align-items:flex-end; justify-content:flex-end;">
-        <button class="remove small secondary">✕</button>
-      </div>
-    </div>
-  `;
-  boxesDiv.appendChild(container);
-
-  const sel = container.querySelector('.b-type');
-  const dimsNode = container.querySelector('.small-dims');
-  const payloadNode = container.querySelector('.b-payload');
-
-  function updateFields(){
-    const chosen = BOX_CATALOGUE[sel.value];
-    dimsNode.innerText = conciseDims(chosen.dims);
-    payloadNode.value = defaults.max_payload_kg ?? chosen.weight;
-    rebuildSummaryPills();
-  }
-  sel.onchange = updateFields;
-  container.querySelector('.remove').onclick = ()=>{ container.remove(); rebuildSummaryPills(); };
-
-  updateFields();
-}
-
-document.getElementById('addBox').onclick = ()=>createBoxRow();
-createBoxRow();
-
-document.getElementById('resetBtn').onclick = ()=>{
-  boxesDiv.innerHTML='';
-  createBoxRow();
-  document.getElementById('source').value='';
-  document.getElementById('dest').value='';
-  document.getElementById('truckNames').value='';
-  document.getElementById('truckDims').value='';
-  document.getElementById('truckPayloads').value='';
-  document.getElementById('results').innerHTML = 'No results yet.';
-  rebuildSummaryPills();
+// Truck specifications from the original code
+const TRUCKS = {
+    "22ft": { name: "22 ft Truck", dims: [6700, 2440, 2440], payload: 7500 },
+    "32ft-single": { name: "32 ft Single Axle", dims: [9750, 2440, 2440], payload: 9000 },
+    "32ft-multi": { name: "32 ft Multi Axle", dims: [9750, 2440, 2440], payload: 16000 }
 };
 
-function rebuildSummaryPills(){
-  summaryPills.innerHTML='';
-  boxesDiv.querySelectorAll('.box-item').forEach(n=>{
-    const type=n.querySelector('.b-type').value;
-    const l=n.querySelector('.small-dims')?.innerText||'';
-    const pill=document.createElement('div');
-    pill.className='pill';
-    pill.innerText=`${type} • ${l}`;
-    summaryPills.appendChild(pill);
-  });
+let boxConfigs = [];
+let vizInstances = new Map();
+
+document.addEventListener('DOMContentLoaded', () => {
+    addBox();
+});
+
+function addBox() {
+    const boxList = document.getElementById('boxList');
+    const boxId = Date.now();
+    
+    const boxOptions = Object.keys(BOX_CATALOG).map(name => 
+        `<option value="${name}">${name}</option>`
+    ).join('');
+    
+    const boxDiv = document.createElement('div');
+    boxDiv.className = 'box-item';
+    boxDiv.id = `box-${boxId}`;
+    
+    boxDiv.innerHTML = `
+        <button class="remove-box" onclick="removeBox(${boxId})">×</button>
+        <h4>Box Configuration</h4>
+        <div class="form-group">
+            <label>Box Type:</label>
+            <select id="type-${boxId}" onchange="updateBoxInfo(${boxId})">
+                ${boxOptions}
+            </select>
+        </div>
+        <div class="box-dims" id="dims-${boxId}"></div>
+        <div class="form-group">
+            <label>Quantity (optional, leave empty for max):</label>
+            <input type="number" id="qty-${boxId}" min="1" placeholder="Auto-calculate maximum">
+        </div>
+        <div class="form-group">
+            <label>Max Payload (kg):</label>
+            <input type="number" id="weight-${boxId}" step="0.1">
+        </div>
+    `;
+    
+    boxList.appendChild(boxDiv);
+    updateBoxInfo(boxId);
+    
+    boxConfigs.push(boxId);
 }
 
-function buildRequest(){
-  const boxes=[];
-  boxesDiv.querySelectorAll('.box-item').forEach(n=>{
-    const type=n.querySelector('.b-type').value;
-    const [l,w,h]=BOX_CATALOGUE[type].dims.map(Number);
-    const payload=n.querySelector('.b-payload').value?parseFloat(n.querySelector('.b-payload').value):null;
-    const qty=n.querySelector('.b-qty').value?parseInt(n.querySelector('.b-qty').value):null;
-    boxes.push({ box_type:type, external_length_mm:l, external_width_mm:w, external_height_mm:h, max_payload_kg:payload, quantity:qty });
-  });
+function removeBox(boxId) {
+    document.getElementById(`box-${boxId}`).remove();
+    boxConfigs = boxConfigs.filter(id => id !== boxId);
+}
 
-  const truckNames=(document.getElementById('truckNames').value||'').split(',').map(s=>s.trim()).filter(Boolean);
-  const truckDimsRaw=(document.getElementById('truckDims').value||'').split(';').map(s=>s.trim()).filter(Boolean);
-  const truckPayloads=(document.getElementById('truckPayloads').value||'').split(',').map(s=>s.trim()).filter(Boolean);
+function updateBoxInfo(boxId) {
+    const type = document.getElementById(`type-${boxId}`).value;
+    const catalog = BOX_CATALOG[type];
+    const dimsDiv = document.getElementById(`dims-${boxId}`);
+    const weightInput = document.getElementById(`weight-${boxId}`);
+    
+    dimsDiv.innerHTML = `Dimensions: ${catalog.dims[0]} × ${catalog.dims[1]} × ${catalog.dims[2]} mm`;
+    weightInput.value = catalog.weight;
+}
 
-  let trucks=null;
-  if(truckNames.length && truckDimsRaw.length===truckNames.length){
-    trucks=truckNames.map((name,i)=>{
-      const dims=truckDimsRaw[i].split('x').map(x=>parseFloat(x));
-      return { name, internal_length_mm:dims[0], internal_width_mm:dims[1], internal_height_mm:dims[2], payload_kg: truckPayloads[i]?parseFloat(truckPayloads[i]):undefined };
+function resetAll() {
+    document.getElementById('boxList').innerHTML = '';
+    document.getElementById('results').innerHTML = '';
+    boxConfigs = [];
+    vizInstances.clear();
+    addBox(); // Add one default box
+}
+
+async function optimize() {
+    const results = document.getElementById('results');
+    results.innerHTML = '<div class="loading"><div class="spinner"></div>Optimizing truck loading...</div>';
+    
+    // Collect box data
+    const boxes = boxConfigs.map(boxId => {
+        const type = document.getElementById(`type-${boxId}`).value;
+        const catalog = BOX_CATALOG[type];
+        const qty = document.getElementById(`qty-${boxId}`).value;
+        const weight = document.getElementById(`weight-${boxId}`).value;
+        
+        return {
+            box_type: type,
+            external_length_mm: catalog.dims[0],
+            external_width_mm: catalog.dims[1],
+            external_height_mm: catalog.dims[2],
+            max_payload_kg: parseFloat(weight) || catalog.weight,
+            quantity: qty ? parseInt(qty) : null
+        };
     });
-  }
-
-  const route_types=[];
-  if(document.getElementById('highway').checked) route_types.push('Highway');
-  if(document.getElementById('semi').checked) route_types.push('Semi-Urban');
-  if(document.getElementById('village').checked) route_types.push('Village');
-
-  return { boxes, trucks, route_source:document.getElementById('source').value||undefined, route_dest:document.getElementById('dest').value||undefined, route_types };
-}
-
-// --- API Call Logic (Newly Added) ---
-document.getElementById('optBtn').onclick = async () => {
-    const btn = document.getElementById('optBtn');
-    const resultsNode = document.getElementById('results');
     
-    btn.disabled = true;
-    btn.innerHTML = `<span class="loader"></span> Optimizing...`;
-    resultsNode.innerHTML = `<div class="muted">Processing your request... please wait.</div>`;
+    // Collect selected trucks
+    const selectedTrucks = [];
+    document.querySelectorAll('#truckSelection input:checked').forEach(checkbox => {
+        const truck = TRUCKS[checkbox.value];
+        selectedTrucks.push({
+            name: truck.name,
+            internal_length_mm: truck.dims[0],
+            internal_width_mm: truck.dims[1],
+            internal_height_mm: truck.dims[2],
+            payload_kg: truck.payload
+        });
+    });
     
-    const requestData = buildRequest();
-
+    if (boxes.length === 0) {
+        results.innerHTML = '<div style="color: red;">Please add at least one box configuration.</div>';
+        return;
+    }
+    
+    if (selectedTrucks.length === 0) {
+        results.innerHTML = '<div style="color: red;">Please select at least one truck.</div>';
+        return;
+    }
+    
     try {
-        // NOTE: You may need to change this URL to match where your Python server is running.
-        const response = await fetch('http://127.0.0.1:8000/api/optimize', {
+        const response = await fetch('http://localhost:8000/api/optimize', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/json'
             },
-            body: JSON.stringify(requestData),
+            body: JSON.stringify({
+                boxes: boxes,
+                trucks: selectedTrucks
+            })
         });
-
+        
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ detail: 'Failed to parse error response from server.' }));
-            throw new Error(errorData.detail || `Request failed with status ${response.status}`);
+            const errorData = await response.text();
+            throw new Error(`Server error: ${response.status} - ${errorData}`);
         }
-
-        const resultsData = await response.json();
-        renderResultsArray(resultsData);
-
+        
+        const data = await response.json();
+        displayResults(data);
     } catch (error) {
-        console.error('Error optimizing:', error);
-        resultsNode.innerHTML = `<div class="muted" style="color:#d9534f; font-weight:bold;">An error occurred: ${error.message}</div>`;
-    } finally {
-        btn.disabled = false;
-        btn.innerHTML = `⚡ Optimize Trucks`;
+        console.error('Error:', error);
+        results.innerHTML = `
+            <div style="color: red; padding: 15px; background: #fbeaea; border: 1px solid #f5c6cb; border-radius: 5px;">
+                <strong>Error:</strong> Could not connect to the optimization server.<br>
+                Please ensure the FastAPI backend server is running on <code>http://localhost:8000</code><br>
+                <small style="color: #721c24;">${error.message}</small>
+            </div>
+        `;
     }
-};
+}
 
-
-// --- 3D Visualization and Results Rendering ---
-function create3DVisualization(container, truckData) {
-  const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0xf0f8ff);
-  
-  const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 20000);
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setSize(container.clientWidth, container.clientHeight);
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-  
-  container.appendChild(renderer.domElement);
-
-  const truckDims = truckData.truck_dimensions || {};
-  const truckLength = truckDims.length_mm || 9750;
-  const truckWidth = truckDims.width_mm || 2440;
-  const truckHeight = truckDims.height_mm || 2440;
-  
-  const truckGeometry = new THREE.BoxGeometry(truckLength, truckHeight, truckWidth);
-  const truckMaterial = new THREE.MeshBasicMaterial({ 
-    color: 0x333333, 
-    wireframe: true, 
-    transparent: true, 
-    opacity: 0.3 
-  });
-  const truckMesh = new THREE.Mesh(truckGeometry, truckMaterial);
-  scene.add(truckMesh);
-
-  const floorGeometry = new THREE.PlaneGeometry(truckLength, truckWidth);
-  const floorMaterial = new THREE.MeshLambertMaterial({ 
-    color: 0xcccccc, 
-    transparent: true, 
-    opacity: 0.5 
-  });
-  const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-  floor.rotation.x = -Math.PI / 2;
-  floor.position.y = -truckHeight / 2;
-  floor.receiveShadow = true;
-  scene.add(floor);
-
-  const boxTypes = Object.keys(truckData.box_counts_by_type || {});
-  const colorMap = {};
-  boxTypes.forEach((type, index) => {
-    colorMap[type] = BOX_COLORS[index % BOX_COLORS.length];
-  });
-
-  if (truckData.placements_sample && truckData.placements_sample.length > 0) {
-    truckData.placements_sample.forEach((placement, index) => {
-      if (!placement.position || !placement.dims_mm) return;
-      
-      const [x, y, z] = placement.position;
-      const [width, height, depth] = placement.dims_mm;
-      
-      if (!width || !height || !depth || width <= 0 || height <= 0 || depth <= 0) return;
-      
-      const boxGeometry = new THREE.BoxGeometry(width, height, depth);
-      const boxColor = colorMap[placement.name] || 0x888888;
-      const boxMaterial = new THREE.MeshLambertMaterial({ 
-        color: boxColor,
-        transparent: true,
-        opacity: 0.8
-      });
-      
-      const edges = new THREE.EdgesGeometry(boxGeometry);
-      const lineMaterial = new THREE.LineBasicMaterial({ color: 0x000000, opacity: 0.3 });
-      const wireframe = new THREE.LineSegments(edges, lineMaterial);
-      
-      const box = new THREE.Mesh(boxGeometry, boxMaterial);
-      
-      box.position.set(
-        x + width/2 - truckLength/2,
-        y + height/2 - truckHeight/2, 
-        z + depth/2 - truckWidth/2
-      );
-      
-      wireframe.position.copy(box.position);
-      
-      box.castShadow = true;
-      box.userData = { 
-        name: placement.name, 
-        weight: placement.weight_kg,
-        dims: [width, height, depth],
-        originalPosition: [x, y, z]
-      };
-      
-      scene.add(box);
-      scene.add(wireframe);
+function displayResults(trucks) {
+    const results = document.getElementById('results');
+    results.innerHTML = '<h2 class="section-title">📊 Optimization Results</h2>';
+    
+    if (!Array.isArray(trucks) || trucks.length === 0) {
+        results.innerHTML += '<p>No valid optimization results were returned.</p>';
+        return;
+    }
+    
+    trucks.forEach((truck, index) => {
+        const truckDiv = document.createElement('div');
+        truckDiv.className = 'truck-result';
+        
+        const utilization = truck.cube_utilisation_pct || 0;
+        const payloadUsed = truck.payload_used_kg || 0;
+        const payloadPct = truck.payload_used_pct || 0;
+        const totalUnits = truck.units_packed_total || 0;
+        
+        // Verification checks
+        const verificationResults = verifyPacking(truck);
+        
+        truckDiv.innerHTML = `
+            <div class="truck-header">
+                <div class="truck-name">${truck.truck_name}</div>
+                <div style="color: ${utilization > 70 ? '#28a745' : utilization > 50 ? '#ffc107' : '#dc3545'}; font-weight: bold;">
+                    ${utilization.toFixed(2)}% Utilized
+                </div>
+            </div>
+            
+            <div class="metrics">
+                <div class="metric">
+                    <div class="metric-value">${totalUnits}</div>
+                    <div class="metric-label">Total Units Packed</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">${utilization.toFixed(1)}%</div>
+                    <div class="metric-label">Volume Utilization</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">${payloadUsed.toFixed(0)} kg</div>
+                    <div class="metric-label">Payload Used (${payloadPct.toFixed(1)}%)</div>
+                </div>
+            </div>
+            
+            <div class="visualization-container" id="viz-${index}">
+                <div class="controls">
+                    <button class="control-btn" onclick="resetCamera(${index})">Reset View</button>
+                    <button class="control-btn" onclick="toggleWireframe(${index})">Toggle Wireframe</button>
+                    <button class="control-btn" onclick="showTopView(${index})">Top View</button>
+                    <button class="control-btn" onclick="showSideView(${index})">Side View</button>
+                    <button class="control-btn" onclick="showFrontView(${index})">Front View</button>
+                </div>
+                <div class="info-panel">
+                    <strong>Controls:</strong><br>
+                    • Drag to rotate<br>
+                    • Scroll to zoom<br>
+                    • Double-click to reset
+                </div>
+            </div>
+            
+            <div class="legend" id="legend-${index}"></div>
+            
+            <div class="verification-panel">
+                <div class="verification-title">✔️ Verification Results:</div>
+                ${verificationResults.map(v => `
+                    <div class="verification-item ${v.passed ? 'verification-pass' : 'verification-fail'}">
+                        ${v.passed ? '✓' : '✗'} ${v.message}
+                    </div>
+                `).join('')}
+            </div>
+            
+            <details style="margin-top: 15px;">
+                <summary style="cursor: pointer; font-weight: bold;">Box Breakdown</summary>
+                <div style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 5px;">
+                    ${Object.entries(truck.box_counts_by_type || {}).map(([type, count]) => `
+                        <div style="display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #eee;">
+                            <span>${type}</span>
+                            <strong>${count} units</strong>
+                        </div>
+                    `).join('')}
+                </div>
+                ${truck.unfitted_counts && Object.keys(truck.unfitted_counts).length > 0 ? `
+                    <div style="margin-top: 10px; color: #dc3545; padding: 10px; background: #fbeaea; border-radius: 5px;">
+                        <strong>Could not fit:</strong>
+                        ${Object.entries(truck.unfitted_counts).map(([type, count]) => `
+                            <div>${type}: ${count} units</div>
+                        `).join('')}
+                    </div>
+                ` : ''}
+            </details>
+        `;
+        
+        results.appendChild(truckDiv);
+        
+        // Create 3D visualization
+        setTimeout(() => {
+            create3DVisualization(index, truck);
+        }, 100);
     });
-  }
+}
 
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-  scene.add(ambientLight);
-  
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-  directionalLight.position.set(truckLength, truckHeight * 2, truckWidth);
-  directionalLight.castShadow = true;
-  directionalLight.shadow.mapSize.width = 1024;
-  directionalLight.shadow.mapSize.height = 1024;
-  scene.add(directionalLight);
-
-  camera.position.set(truckLength * 1.5, truckHeight, truckWidth * 1.5);
-  camera.lookAt(0, 0, 0);
-
-  let mouseDown = false;
-  let mouseX = 0;
-  let mouseY = 0;
-  let targetRotationX = 0;
-  let targetRotationY = 0;
-  let rotationX = 0;
-  let rotationY = 0;
-
-  renderer.domElement.addEventListener('mousedown', (e) => {
-    mouseDown = true;
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-  });
-
-  renderer.domElement.addEventListener('mousemove', (e) => {
-    if (!mouseDown) return;
-    const deltaX = e.clientX - mouseX;
-    const deltaY = e.clientY - mouseY;
-    targetRotationY += deltaX * 0.01;
-    targetRotationX += deltaY * 0.01;
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-  });
-
-  renderer.domElement.addEventListener('mouseup', () => { mouseDown = false; });
-  renderer.domElement.addEventListener('wheel', (e) => {
-    e.preventDefault();
-    const scale = e.deltaY > 0 ? 1.1 : 0.9;
-    camera.position.multiplyScalar(scale);
-  });
-
-  function animate() {
-    requestAnimationFrame(animate);
-    rotationX += (targetRotationX - rotationX) * 0.1;
-    rotationY += (targetRotationY - rotationY) * 0.1;
+function verifyPacking(truck) {
+    const results = [];
     
-    const radius = camera.position.length();
-    camera.position.x = radius * Math.sin(rotationY) * Math.cos(rotationX);
-    camera.position.y = radius * Math.sin(rotationX);
-    camera.position.z = radius * Math.cos(rotationY) * Math.cos(rotationX);
-    camera.lookAt(0, 0, 0);
+    // Check volume constraint
+    const truckVolume = truck.truck_dimensions.volume_mm3;
+    let totalBoxVolume = 0;
     
-    renderer.render(scene, camera);
-  }
-  animate();
+    if (truck.placements_sample) {
+        truck.placements_sample.forEach(p => {
+            if (p.dims_mm) {
+                totalBoxVolume += p.dims_mm[0] * p.dims_mm[1] * p.dims_mm[2];
+            }
+        });
+    }
+    
+    results.push({
+        passed: totalBoxVolume <= truckVolume * 1.01, // 1% tolerance for rounding
+        message: `Volume constraint: ${(totalBoxVolume/1e9).toFixed(2)} m³ used of ${(truckVolume/1e9).toFixed(2)} m³ available`
+    });
+    
+    // Check weight constraint
+    const maxPayload = truck.truck_dimensions.payload_kg || 16000;
+    const usedPayload = truck.payload_used_kg || 0;
+    results.push({
+        passed: usedPayload <= maxPayload,
+        message: `Weight constraint: ${usedPayload.toFixed(0)} kg used of ${maxPayload} kg max`
+    });
+    
+    // Check no overlapping boxes (by sampling)
+    let hasOverlap = false;
+    if (truck.placements_sample && truck.placements_sample.length > 1) {
+        for (let i = 0; i < Math.min(truck.placements_sample.length - 1, 100); i++) {
+            for (let j = i + 1; j < Math.min(truck.placements_sample.length, 100); j++) {
+                const box1 = truck.placements_sample[i];
+                const box2 = truck.placements_sample[j];
+                if (box1.corners && box2.corners) {
+                    if (boxesOverlap(box1.corners, box2.corners)) {
+                        hasOverlap = true;
+                        break;
+                    }
+                }
+            }
+            if (hasOverlap) break;
+        }
+    }
+    
+    results.push({
+        passed: !hasOverlap,
+        message: `No overlapping boxes detected (sampled check)`
+    });
+    
+    // Check all boxes within truck bounds
+    let allWithinBounds = true;
+    if (truck.placements_sample) {
+        const truckDims = truck.truck_dimensions;
+        truck.placements_sample.forEach(p => {
+            if (p.corners && p.corners.max) {
+                if (p.corners.max[0] > truckDims.length_mm + 1 || // +1mm tolerance
+                    p.corners.max[1] > truckDims.height_mm + 1 ||
+                    p.corners.max[2] > truckDims.width_mm + 1) {
+                    allWithinBounds = false;
+                }
+            }
+        });
+    }
+    
+    results.push({
+        passed: allWithinBounds,
+        message: `All boxes within truck boundaries`
+    });
+    
+    return results;
+}
 
-  const resizeObserver = new ResizeObserver(() => {
+function boxesOverlap(corners1, corners2) {
+    return !(corners1.max[0] <= corners2.min[0] || corners2.max[0] <= corners1.min[0] ||
+             corners1.max[1] <= corners2.min[1] || corners2.max[1] <= corners1.min[1] ||
+             corners1.max[2] <= corners2.min[2] || corners2.max[2] <= corners1.min[2]);
+}
+
+function create3DVisualization(index, truckData) {
+    const container = document.getElementById(`viz-${index}`);
+    if (!container) return;
+    
+    const existingCanvas = container.querySelector('canvas');
+    if (existingCanvas) existingCanvas.remove();
+    
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xf5f5f5);
+    
     const width = container.clientWidth;
     const height = container.clientHeight;
-    camera.aspect = width / height;
-    camera.updateProjectionMatrix();
+    
+    const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 50000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(width, height);
-  });
-  resizeObserver.observe(container);
-
-  return { scene, camera, renderer, colorMap };
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    container.appendChild(renderer.domElement);
+    
+    const truckDims = truckData.truck_dimensions;
+    const L = truckDims.length_mm;
+    const W = truckDims.width_mm;
+    const H = truckDims.height_mm;
+    
+    const truckGeometry = new THREE.BoxGeometry(L, H, W);
+    const edges = new THREE.EdgesGeometry(truckGeometry);
+    const truckLines = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 2 }));
+    scene.add(truckLines);
+    
+    const colors = [0xff6b6b, 0x4ecdc4, 0x45b7d1, 0xfeca57, 0xff9ff3, 0x54a0ff, 0x48dbfb, 0x1dd1a1, 0xffeaa7, 0xfd79a8];
+    const boxTypes = Object.keys(truckData.box_counts_by_type || {});
+    const colorMap = {};
+    boxTypes.forEach((type, i) => { colorMap[type] = colors[i % colors.length]; });
+    
+    const legendDiv = document.getElementById(`legend-${index}`);
+    legendDiv.innerHTML = '';
+    boxTypes.forEach(type => {
+        const item = document.createElement('div');
+        item.className = 'legend-item';
+        const color = `#${colorMap[type].toString(16).padStart(6, '0')}`;
+        item.innerHTML = `<div class="legend-color" style="background: ${color};"></div><span>${type} (${truckData.box_counts_by_type[type]})</span>`;
+        legendDiv.appendChild(item);
+    });
+    
+    const boxGroup = new THREE.Group();
+    const placements = truckData.placements_sample || [];
+    placements.forEach(p => {
+        if (!p.dims_mm || !p.pos_mm) return;
+        const [dx, dy, dz] = p.dims_mm;
+        const [x, y, z] = p.pos_mm;
+        const geometry = new THREE.BoxGeometry(dx, dy, dz);
+        const material = new THREE.MeshPhongMaterial({ color: colorMap[p.type] || 0xaaaaaa });
+        const boxMesh = new THREE.Mesh(geometry, material);
+        boxMesh.position.set(x + dx / 2 - L / 2, y + dy / 2 - H / 2, z + dz / 2 - W / 2);
+        const boxEdges = new THREE.LineSegments(new THREE.EdgesGeometry(geometry), new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.3 }));
+        boxMesh.add(boxEdges);
+        boxGroup.add(boxMesh);
+    });
+    scene.add(boxGroup);
+    
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+    scene.add(ambientLight);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+    directionalLight.position.set(L, H * 2, W);
+    scene.add(directionalLight);
+    
+    camera.position.set(L * 0.8, H, W * 1.5);
+    camera.lookAt(0, 0, 0);
+    
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    
+    vizInstances.set(index, { camera, scene, renderer, controls, boxGroup, isWireframe: false });
+    
+    function animate() {
+        if (!vizInstances.has(index)) return; // Stop animation if cleared
+        requestAnimationFrame(animate);
+        controls.update();
+        renderer.render(scene, camera);
+    }
+    animate();
+    
+    window.addEventListener('resize', () => {
+        const newWidth = container.clientWidth;
+        const newHeight = container.clientHeight;
+        camera.aspect = newWidth / newHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(newWidth, newHeight);
+    });
 }
 
-function renderResultsArray(data){
-  if(!Array.isArray(data)||data.length===0){
-    document.getElementById('results').innerHTML=`<div class="muted">No viable packing solution found for the given boxes and trucks.</div>`;
-    return;
-  }
-  const container=document.createElement('div');
-  container.className='results-grid';
-
-  data.forEach((r, truckIndex) => {
-    const truckName=r.truck_name||'Truck';
-    const units=r.units_packed_total??0;
-    const cube=r.cube_utilisation_pct??0;
-    const payloadKg=r.payload_used_kg??0;
-    const payloadPct=r.payload_used_pct??0;
-    const boxes=r.box_counts_by_type||{};
-
-    const card=document.createElement('div');
-    card.className='truck-card';
-    card.innerHTML = `
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <div>
-          <div style="font-weight:800;font-size:14px;color:var(--accent-contrast)">${truckName}</div>
-          <div class="metric-small muted">${units} units</div>
-        </div>
-      </div>
-      <div style="display:flex; justify-content:space-between; gap:8px; margin-top:10px;">
-        <div>
-          <div class="metric">${cube.toFixed(2)}%</div>
-          <div class="metric-small">Cube Utilisation</div>
-        </div>
-        <div style="text-align:right;">
-          <div class="metric">${payloadKg.toFixed(1)} kg</div>
-          <div class="metric-small">Payload Used (${(payloadPct||0).toFixed(1)}%)</div>
-        </div>
-      </div>
-    `;
-
-    if (units > 0) {
-      const vizContainer = document.createElement('div');
-      vizContainer.className = 'viz-container';
-      vizContainer.id = `viz-${truckIndex}`;
-      card.appendChild(vizContainer);
-      
-      setTimeout(() => {
-        try {
-          const viz = create3DVisualization(vizContainer, r);
-          vizContainer.vizData = viz;
-          
-          if (Object.keys(boxes).length > 0) {
-            const legend = document.createElement('div');
-            legend.className = 'legend';
-            legend.innerHTML = '<div style="font-weight:700;margin-bottom:4px;">Box Types:</div>';
-            Object.entries(boxes).forEach(([boxType, count]) => {
-              const color = viz.colorMap[boxType] || 0x888888;
-              const hexColor = '#' + new THREE.Color(color).getHexString();
-              legend.innerHTML += `<div class="legend-item"><div class="legend-color" style="background-color: ${hexColor}"></div><span>${boxType} (${count})</span></div>`;
-            });
-            vizContainer.appendChild(legend);
-          }
-        } catch (error) {
-          console.error('Error creating 3D visualization:', error);
-          vizContainer.innerHTML = '<div style="padding:20px;text-align:center;color:#666;">3D visualization unavailable</div>';
-        }
-      }, 100);
-    }
-
-    const list=document.createElement('div');
-    list.style.marginTop='10px';
-    let boxListHTML = `<div style="font-weight:700;font-size:13px;color:#0f172a">Boxes</div><div style="margin-top:6px;">`;
-    for(const [k,v] of Object.entries(boxes)){
-      boxListHTML += `<div style="display:flex;justify-content:space-between;font-size:13px;color:#123;margin-top:6px;"><div style="color:var(--muted)">${k}</div><div style="font-weight:800">${v}</div></div>`;
-    }
-    boxListHTML += `</div>`;
-    list.innerHTML = boxListHTML;
-    card.appendChild(list);
-
-    if(r.notes&&r.notes.length){
-      const note=document.createElement('div');
-      note.style.marginTop='10px';
-      note.style.fontSize='12px';
-      note.style.color='var(--muted)';
-      note.innerText='Notes: '+r.notes.slice(0,2).join(' • ');
-      card.appendChild(note);
-    }
-    container.appendChild(card);
-  });
-
-  const resultsNode=document.getElementById('results');
-  resultsNode.innerHTML='';
-  resultsNode.appendChild(container);
+function resetCamera(index) {
+    const viz = vizInstances.get(index);
+    if (viz) viz.controls.reset();
 }
 
-// Global functions for 3D controls (not part of original code, but useful)
-// These would need controls in the HTML to be useful.
-// window.resetView = ...
-// window.toggleWireframe = ...
+function toggleWireframe(index) {
+    const viz = vizInstances.get(index);
+    if (viz) {
+        viz.isWireframe = !viz.isWireframe;
+        viz.boxGroup.children.forEach(box => {
+            box.material.wireframe = viz.isWireframe;
+        });
+    }
+}
+
+function setCameraView(index, x, y, z) {
+    const viz = vizInstances.get(index);
+    if (viz) {
+        viz.camera.position.set(x, y, z);
+        viz.controls.target.set(0, 0, 0);
+    }
+}
+
+function showTopView(index) { setCameraView(index, 0, 15000, 0.1); }
+function showSideView(index) { setCameraView(index, 0, 0, 15000); }
+function showFrontView(index) { setCameraView(index, 15000, 0, 0); }
+
 </script>
 </body>
 </html>
