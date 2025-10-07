@@ -1,5 +1,4 @@
-"""
-Real-World 3D Truck Optimization System - FastAPI Backend
+""" Real-World 3D Truck Optimization System - FastAPI Backend
 Practical bin packing with accurate results and verification
 """
 
@@ -15,7 +14,7 @@ import time
 import logging
 
 # ==================== Tunable Fill Factor ====================
-VOLUME_FILL_FACTOR = 0.50  # Adjust this later to control how tightly the truck is filled
+VOLUME_FILL_FACTOR = 0.90  # Adjust this later to control how tightly the truck is filled
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -33,8 +32,6 @@ app.add_middleware(
 )
 
 # ==================== Shipment & Cost Data ====================
-
-# Approximate road distances between major Indian cities in KM
 CITY_DISTANCES_KM = {
     frozenset(("Mumbai", "Delhi")): 1420,
     frozenset(("Mumbai", "Bangalore")): 985,
@@ -53,7 +50,6 @@ CITY_DISTANCES_KM = {
     frozenset(("Chennai", "Hyderabad")): 630,
 }
 
-# Cost model: Base Rate (INR) + Rate per KM (INR)
 COST_MODEL = {
     "22 ft Truck": {"base_rate": 4000, "rate_per_km": 55},
     "32 ft Single Axle": {"base_rate": 5000, "rate_per_km": 65},
@@ -61,7 +57,6 @@ COST_MODEL = {
 }
 
 # ==================== Data Models ====================
-
 class BoxInput(BaseModel):
     box_type: str
     external_length_mm: Optional[float] = Field(None)
@@ -113,7 +108,6 @@ class TruckResult(BaseModel):
     verification_details: List[str]
 
 # ==================== Core Optimization Engine ====================
-
 @dataclass
 class Box:
     type: str
@@ -184,7 +178,7 @@ class Space:
     @property
     def z_max(self): return self.z + self.width
 
-    def can_fit(self, l, w, h, tol=0.0001):
+    def can_fit(self, l, w, h, tol=0.01):  # Increased tolerance for small boxes
         """Small tolerance to avoid false negatives"""
         return (l <= self.length + tol) and (w <= self.width + tol) and (h <= self.height + tol)
 
@@ -297,7 +291,7 @@ class TruckPacker:
             s.y >= placement.y - 0.1 and s.y_max <= placement.y_max + 0.1 and
             s.z >= placement.z - 0.1 and s.z_max <= placement.z_max + 0.1)]
         self._merge_spaces()
-        N_KEEP = 500
+        N_KEEP = 1000  # increase free space tracking for small boxes
         self.spaces.sort(key=lambda s: (s.y, s.x, s.z, -s.volume))
         if len(self.spaces) > N_KEEP:
             self.spaces = self.spaces[:N_KEEP]
@@ -305,18 +299,24 @@ class TruckPacker:
     def fill_remaining(self, unpacked: List[Box]):
         """Second pass: fill small gaps with relaxed support"""
         original_threshold = self.SUPPORT_THRESHOLD
-        self.SUPPORT_THRESHOLD = 0.2
-        remaining = []
         for box in sorted(unpacked, key=lambda b: b.volume):
+            if box.volume < 1e6:  # very small boxes (< 1,000,000 mm³)
+                self.SUPPORT_THRESHOLD = 0.0  # ignore support
+            else:
+                self.SUPPORT_THRESHOLD = 0.2
             if not self._try_pack_box(box):
-                remaining.append(box)
+                continue
         self.SUPPORT_THRESHOLD = original_threshold
+        remaining = [b for b in unpacked if b.id not in {p.box.id for p in self.placements}]
         return remaining
 
     def get_utilization(self) -> float:
         truck_volume = self.truck_length * self.truck_width * self.truck_height
         used_volume = sum(p.length * p.height * p.width for p in self.placements)
         return (used_volume / truck_volume) * 100 if truck_volume > 0 else 0
+
+    
+
 
     def verify_packing(self) -> Tuple[bool, List[str]]:
         issues = []
@@ -335,7 +335,6 @@ class TruckPacker:
         return len(issues) == 0, issues
 
 # ==================== API Endpoints ====================
-
 @app.post("/api/optimize", response_model=List[TruckResult])
 async def optimize_loading(request: OptimizationRequest):
     try:
@@ -350,9 +349,9 @@ async def optimize_loading(request: OptimizationRequest):
                 if distance and cost_params:
                     calculated_cost = cost_params["base_rate"] + (distance * cost_params["rate_per_km"])
                     logger.info(f"Cost for {truck.name} from {request.source_city} to {request.destination_city}: INR {calculated_cost:.2f}")
+
             all_boxes, box_id_counter = [], 0
             for box_config in request.boxes:
-                is_pp_custom = isinstance(box_config.box_type, str) and box_config.box_type.strip().lower().startswith("pp")
                 if box_config.quantity is None:
                     truck_volume = truck.internal_length_mm * truck.internal_width_mm * truck.internal_height_mm
                     box_volume = box_config.external_length_mm * box_config.external_width_mm * box_config.external_height_mm
@@ -370,13 +369,16 @@ async def optimize_loading(request: OptimizationRequest):
                         weight=box_config.max_payload_kg,
                         id=box_id_counter))
                     box_id_counter += 1
+
             packer = TruckPacker(truck.internal_length_mm, truck.internal_width_mm, truck.internal_height_mm, truck.payload_kg)
             packed_placements, unpacked_boxes = packer.pack_boxes(all_boxes)
+
             box_counts, unfitted_counts = {}, {}
             for p in packed_placements:
                 box_counts[p.box.type] = box_counts.get(p.box.type, 0) + 1
             for box in unpacked_boxes:
                 unfitted_counts[box.type] = unfitted_counts.get(box.type, 0) + 1
+
             placements_sample, rotation_names = [], ["LWH", "LHW", "WLH", "WHL", "HLW", "HWL"]
             for p in packed_placements[:min(len(packed_placements), 1500)]:
                 placements_sample.append(BoxPlacement(
@@ -386,10 +388,12 @@ async def optimize_loading(request: OptimizationRequest):
                     rotation=rotation_names[p.rotation_idx],
                     corners={"min": [p.x, p.y, p.z], "max": [p.x_max, p.y_max, p.z_max]},
                     weight_kg=p.box.weight))
+
             is_valid, verification_issues = packer.verify_packing()
             utilization = packer.get_utilization()
             total_weight = sum(p.box.weight for p in packed_placements)
             weight_utilization = (total_weight / truck.payload_kg * 100) if truck.payload_kg > 0 else 0
+
             results.append(TruckResult(
                 truck_name=truck.name,
                 truck_dimensions=TruckDimensions(
@@ -407,8 +411,11 @@ async def optimize_loading(request: OptimizationRequest):
                 unfitted_counts=unfitted_counts,
                 placements_sample=placements_sample,
                 verification_passed=is_valid,
-                verification_details=verification_issues if not is_valid else ["All checks passed"]))
+                verification_details=verification_issues if not is_valid else ["All checks passed"]
+            ))
+
             logger.info(f"Truck {truck.name}: Packed {len(packed_placements)} boxes, {utilization:.1f}% utilization")
+
         return results
     except HTTPException:
         raise
