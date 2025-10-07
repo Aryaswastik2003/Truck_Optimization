@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Real-World 3D Truck Optimization System</title>
+<title> 3D Truck Optimization System</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -51,6 +51,15 @@ h1 {
 
 .form-group {
     margin-bottom: 15px;
+}
+
+.form-row {
+    display: flex;
+    gap: 20px;
+}
+
+.form-row .form-group {
+    flex: 1;
 }
 
 label {
@@ -174,7 +183,7 @@ input:focus, select:focus {
 
 .metrics {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 15px;
     margin-bottom: 20px;
 }
@@ -325,6 +334,20 @@ input:focus, select:focus {
     </div>
 
     <div class="section">
+        <h2 class="section-title">📍 Shipment Details</h2>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="sourceCity">Source City</label>
+                <select id="sourceCity"></select>
+            </div>
+            <div class="form-group">
+                <label for="destinationCity">Destination City</label>
+                <select id="destinationCity"></select>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
         <h2 class="section-title">🚚 Truck Selection</h2>
         <div class="form-group">
             <label>Select Trucks to Optimize:</label>
@@ -381,13 +404,33 @@ const TRUCKS = {
     "32ft-multi": { name: "32 ft Multi Axle", dims: [9750, 2440, 2440], payload: 16000 }
 };
 
+// --- NEW: Shipment Data ---
+const CITIES = ["Mumbai", "Delhi", "Bangalore", "Kolkata", "Chennai", "Hyderabad"];
+
 let boxConfigs = [];
 let vizInstances = new Map();
 
 document.addEventListener('DOMContentLoaded', () => {
+    populateCityDropdowns();
     addBox();
 });
 
+function populateCityDropdowns() {
+    const sourceSelect = document.getElementById('sourceCity');
+    const destSelect = document.getElementById('destinationCity');
+    
+    CITIES.forEach(city => {
+        sourceSelect.innerHTML += `<option value="${city}">${city}</option>`;
+        destSelect.innerHTML += `<option value="${city}">${city}</option>`;
+    });
+
+    // Set default different values
+    sourceSelect.value = "Mumbai";
+    destSelect.value = "Delhi";
+}
+
+
+// ---- REPLACED addBox() function ----
 function addBox() {
     const boxList = document.getElementById('boxList');
     const boxId = Date.now();
@@ -410,6 +453,24 @@ function addBox() {
             </select>
         </div>
         <div class="box-dims" id="dims-${boxId}"></div>
+
+        <div id="pp-dims-${boxId}" style="display:none; margin-top:8px;">
+            <div class="form-row" style="gap:8px;">
+                <div class="form-group" style="flex:1;">
+                    <label>PP Length (mm)</label>
+                    <input type="number" id="pp-length-${boxId}" min="1" placeholder="e.g. 1900">
+                </div>
+                <div class="form-group" style="flex:1;">
+                    <label>PP Width (mm)</label>
+                    <input type="number" id="pp-width-${boxId}" min="1" placeholder="e.g. 1200">
+                </div>
+                <div class="form-group" style="flex:1;">
+                    <label>PP Height (mm)</label>
+                    <input type="number" id="pp-height-${boxId}" min="1" placeholder="e.g. 800">
+                </div>
+            </div>
+        </div>
+
         <div class="form-group">
             <label>Quantity (optional, leave empty for max):</label>
             <input type="number" id="qty-${boxId}" min="1" placeholder="Auto-calculate maximum">
@@ -431,14 +492,30 @@ function removeBox(boxId) {
     boxConfigs = boxConfigs.filter(id => id !== boxId);
 }
 
+// ---- REPLACED updateBoxInfo(boxId) function ----
 function updateBoxInfo(boxId) {
     const type = document.getElementById(`type-${boxId}`).value;
     const catalog = BOX_CATALOG[type];
     const dimsDiv = document.getElementById(`dims-${boxId}`);
     const weightInput = document.getElementById(`weight-${boxId}`);
+    const ppDimsDiv = document.getElementById(`pp-dims-${boxId}`);
     
-    dimsDiv.innerHTML = `Dimensions: ${catalog.dims[0]} × ${catalog.dims[1]} × ${catalog.dims[2]} mm`;
-    weightInput.value = catalog.weight;
+    // If PP Box selected -> show custom inputs and instruct user to enter dims
+    if (type === "PP Box") {
+        dimsDiv.innerHTML = `<span style="color:#d63333; font-weight:600;">PP box — enter custom dimensions below</span>`;
+        ppDimsDiv.style.display = "block";
+        // Prefill weight from catalog (unchanged)
+        if (catalog && catalog.weight) weightInput.value = catalog.weight;
+    } else {
+        // For other catalog boxes show fixed dims
+        if (catalog && catalog.dims) {
+            dimsDiv.innerHTML = `Dimensions: ${catalog.dims[0]} × ${catalog.dims[1]} × ${catalog.dims[2]} mm`;
+        } else {
+            dimsDiv.innerHTML = `Dimensions: N/A`;
+        }
+        ppDimsDiv.style.display = "none";
+        if (catalog && catalog.weight) weightInput.value = catalog.weight;
+    }
 }
 
 function resetAll() {
@@ -449,23 +526,44 @@ function resetAll() {
     addBox(); // Add one default box
 }
 
+// ---- REPLACED optimize() function ----
 async function optimize() {
     const results = document.getElementById('results');
     results.innerHTML = '<div class="loading"><div class="spinner"></div>Optimizing truck loading...</div>';
     
-    // Collect box data
+    // Collect box data (modified to pick up PP custom dims)
     const boxes = boxConfigs.map(boxId => {
         const type = document.getElementById(`type-${boxId}`).value;
         const catalog = BOX_CATALOG[type];
         const qty = document.getElementById(`qty-${boxId}`).value;
         const weight = document.getElementById(`weight-${boxId}`).value;
         
+        // default to catalog dims
+        let length = (catalog && catalog.dims) ? catalog.dims[0] : 0;
+        let width  = (catalog && catalog.dims) ? catalog.dims[1] : 0;
+        let height = (catalog && catalog.dims) ? catalog.dims[2] : 0;
+        
+        // If PP Box, read user inputs (must be provided)
+        if (type === "PP Box") {
+            const l = parseInt(document.getElementById(`pp-length-${boxId}`).value);
+            const w = parseInt(document.getElementById(`pp-width-${boxId}`).value);
+            const h = parseInt(document.getElementById(`pp-height-${boxId}`).value);
+            // Basic validation: must be positive numbers
+            if (!l || !w || !h || l <= 0 || w <= 0 || h <= 0) {
+                results.innerHTML = '<div style="color:red; padding: 15px; background: #fbeaea; border: 1px solid #f5c6cb; border-radius: 5px;"><strong>Validation Error:</strong> Please enter valid Length, Width and Height (must be positive numbers) for all PP Box entries before optimizing.</div>';
+                throw new Error('PP Box dimensions missing or invalid');
+            }
+            length = l;
+            width = w;
+            height = h;
+        }
+        
         return {
             box_type: type,
-            external_length_mm: catalog.dims[0],
-            external_width_mm: catalog.dims[1],
-            external_height_mm: catalog.dims[2],
-            max_payload_kg: parseFloat(weight) || catalog.weight,
+            external_length_mm: length,
+            external_width_mm: width,
+            external_height_mm: height,
+            max_payload_kg: parseFloat(weight) || (catalog && catalog.weight) || 0,
             quantity: qty ? parseInt(qty) : null
         };
     });
@@ -483,6 +581,10 @@ async function optimize() {
         });
     });
     
+    // --- NEW: Collect shipment details ---
+    const sourceCity = document.getElementById('sourceCity').value;
+    const destinationCity = document.getElementById('destinationCity').value;
+
     if (boxes.length === 0) {
         results.innerHTML = '<div style="color: red;">Please add at least one box configuration.</div>';
         return;
@@ -490,6 +592,11 @@ async function optimize() {
     
     if (selectedTrucks.length === 0) {
         results.innerHTML = '<div style="color: red;">Please select at least one truck.</div>';
+        return;
+    }
+
+    if (sourceCity === destinationCity) {
+        results.innerHTML = '<div style="color: orange;">Source and destination cities cannot be the same.</div>';
         return;
     }
     
@@ -501,7 +608,9 @@ async function optimize() {
             },
             body: JSON.stringify({
                 boxes: boxes,
-                trucks: selectedTrucks
+                trucks: selectedTrucks,
+                source_city: sourceCity,
+                destination_city: destinationCity
             })
         });
         
@@ -514,13 +623,16 @@ async function optimize() {
         displayResults(data);
     } catch (error) {
         console.error('Error:', error);
-        results.innerHTML = `
-            <div style="color: red; padding: 15px; background: #fbeaea; border: 1px solid #f5c6cb; border-radius: 5px;">
-                <strong>Error:</strong> Could not connect to the optimization server.<br>
-                Please ensure the FastAPI backend server is running on <code>http://localhost:8000</code><br>
-                <small style="color: #721c24;">${error.message}</small>
-            </div>
-        `;
+        // If error came from PP validation, error already shown; otherwise show server connection error
+        if (!results.innerHTML.includes('PP Box')) {
+            results.innerHTML = `
+                <div style="color: red; padding: 15px; background: #fbeaea; border: 1px solid #f5c6cb; border-radius: 5px;">
+                    <strong>Error:</strong> Could not connect to the optimization server.<br>
+                    Please ensure the FastAPI backend server is running on <code>http://localhost:8000</code><br>
+                    <small style="color: #721c24;">${error.message}</small>
+                </div>
+            `;
+        }
     }
 }
 
@@ -541,6 +653,14 @@ function displayResults(trucks) {
         const payloadUsed = truck.payload_used_kg || 0;
         const payloadPct = truck.payload_used_pct || 0;
         const totalUnits = truck.units_packed_total || 0;
+        const estimatedCost = truck.estimated_cost;
+        
+        // --- NEW: Cost metric HTML ---
+        const costMetricHtml = estimatedCost ? `
+            <div class="metric">
+                <div class="metric-value">₹ ${Math.round(estimatedCost).toLocaleString('en-IN')}</div>
+                <div class="metric-label">Estimated Cost</div>
+            </div>` : '';
         
         // Verification checks
         const verificationResults = verifyPacking(truck);
@@ -554,6 +674,7 @@ function displayResults(trucks) {
             </div>
             
             <div class="metrics">
+                ${costMetricHtml}
                 <div class="metric">
                     <div class="metric-value">${totalUnits}</div>
                     <div class="metric-label">Total Units Packed</div>
@@ -673,7 +794,7 @@ function verifyPacking(truck) {
     
     results.push({
         passed: !hasOverlap,
-        message: `No overlapping boxes detected (sampled check)`
+        message: `No overlapping boxes detected for 3d visuals`
     });
     
     // Check all boxes within truck bounds
