@@ -437,11 +437,9 @@ input:focus, select:focus {
 </head>
 <body>
 <div class="container">
-    <h1>🚛 Real-World 3D Truck Optimization System</h1>
+    <h1>🚛 3D Truck Optimization System</h1>
     <div class="subtitle">Industry-grade 3D bin packing with real-world constraints</div>
-    <div class="expected-results">
-        <strong>Typical Results:</strong> 85-97% utilization | Top performers achieve 95%+ | 100% is mathematically impossible with real-world constraints
-    </div>
+    
     
     <div class="section">
         <h2 class="section-title">📦 Box Configuration</h2>
@@ -468,9 +466,22 @@ input:focus, select:focus {
         <div class="form-group">
             <label>Select Trucks to Optimize:</label>
             <div id="truckSelection">
+                
+                <label><input type="checkbox" checked value="14ft"> 14 ft Truck (Small Rigid) (4300×2000×2000mm, 3500kg)</label><br>
+                <label><input type="checkbox" checked value="17ft"> 17 ft Truck (Medium Rigid) (5180×2200×2200mm, 5000kg)</label><br>
+                <label><input type="checkbox" checked value="20ft-highcube"> 20 ft Truck (High Cube) (6100×2440×2600mm, 7000kg)</label><br>
                 <label><input type="checkbox" checked value="22ft"> 22 ft Truck (6700×2440×2440mm, 7500kg)</label><br>
+                <label><input type="checkbox" checked value="22ft-tipper"> 22 ft Tipper Truck (Open Body) (6700×2440×1500mm, 12000kg)</label><br>
+                <label><input type="checkbox" checked value="24ft"> 24 ft Truck (Heavy Rigid) (7315×2440×2440mm, 8000kg)</label><br>
+                <label><input type="checkbox" checked value="28ft-single"> 28 ft Single Axle (8530×2440×2440mm, 8500kg)</label><br>
+                <label><input type="checkbox" checked value="28ft-multi"> 28 ft Multi Axle (8530×2440×2600mm, 13000kg)</label><br>
                 <label><input type="checkbox" checked value="32ft-single"> 32 ft Single Axle (9750×2440×2440mm, 9000kg)</label><br>
-                <label><input type="checkbox" checked value="32ft-multi"> 32 ft Multi Axle (9750×2440×2440mm, 16000kg)</label>
+                <label><input type="checkbox" checked value="32ft-multi"> 32 ft Multi Axle (9750×2440×2600mm, 16000kg)</label><br>
+                <label><input type="checkbox" checked value="32ft-highcube"> 32 ft High Cube Multi Axle (9750×2600×2750mm, 15000kg)</label><br>
+                <label><input type="checkbox" checked value="40ft-flatbed"> 40 ft Trailer (Flatbed) (12190×2440×2440mm, 18000kg)</label><br>
+                <label><input type="checkbox" checked value="40ft-container"> 40 ft Container Truck (12190×2440×2590mm, 26000kg)</label><br>
+                <label><input type="checkbox" checked value="40ft-refrigerated"> 40 ft Refrigerated Truck (12190×2440×2590mm, 26000kg)</label><br>
+
             </div>
         </div>
     </div>
@@ -491,18 +502,16 @@ input:focus, select:focus {
                 100% utilization is mathematically impossible in real-world 3D bin packing due to:
                 <ul style="margin: 10px 0 0 20px;">
                     <li><strong>Irregular box sizes:</strong> Gaps are inevitable when boxes don't divide evenly</li>
-                    <li><strong>Stability requirements:</strong> Boxes need proper support (not floating in air)</li>
                     <li><strong>Weight distribution:</strong> Heavier items must be placed lower</li>
-                    <li><strong>Physical constraints:</strong> Real trucks have wheel wells, doors, and structural elements</li>
                 </ul>
-                Industry research shows <strong>85-97% is optimal</strong> for mixed cargo loads.
+                Industry research shows <strong>80-97% is optimal</strong> for mixed cargo loads.
             </div>
         </div>
         
         <div class="faq-item">
-            <div class="faq-question">Is 96% utilization good?</div>
+            <div class="faq-question">Is 80-90% utilization good?</div>
             <div class="faq-answer">
-                <strong>Yes! 96% is excellent.</strong> This places you in the <strong>top 10%</strong> of logistics operations. Most professional logistics companies achieve 80-90% utilization. Anything above 95% indicates near-perfect optimization considering real-world constraints.
+                <strong>Yes! 80-90% is excellent.</strong> This places you in the <strong>top 10%</strong> of logistics operations. Most professional logistics companies achieve 80-90% utilization. Anything above 95% indicates near-perfect optimization considering real-world constraints.
             </div>
         </div>
         
@@ -511,7 +520,6 @@ input:focus, select:focus {
             <div class="faq-answer">
                 <strong>Weight Limited:</strong> The truck reached its maximum weight capacity before filling all available space. Solution: Use lighter boxes or a truck with higher payload capacity.<br><br>
                 <strong>Volume Limited:</strong> The truck ran out of physical space before reaching weight limits. This is normal for bulky, lightweight cargo.<br><br>
-                <strong>Balanced:</strong> Both constraints are nearly equal - this indicates optimal truck selection for your cargo.
             </div>
         </div>
         
@@ -556,10 +564,23 @@ const BOX_CATALOG = {
 
 // Truck specifications from the original code
 const TRUCKS = {
-    "22ft": { name: "22 ft Truck", dims: [6700, 2440, 2440], payload: 7500 },
-    "32ft-single": { name: "32 ft Single Axle", dims: [9750, 2440, 2440], payload: 9000 },
-    "32ft-multi": { name: "32 ft Multi Axle", dims: [9750, 2440, 2440], payload: 16000 }
+  "14ft":            { name: "14 ft Truck (Small Rigid)", dims: [4300, 2000, 2000], payload: 3500 },
+  "17ft":            { name: "17 ft Truck (Medium Rigid)", dims: [5180, 2200, 2200], payload: 5000 },
+  "20ft-highcube":   { name: "20 ft Truck (High Cube)", dims: [6100, 2440, 2600], payload: 7000 },
+  "22ft":            { name: "22 ft Truck", dims: [6700, 2440, 2440], payload: 7500 },
+  "22ft-tipper":     { name: "22 ft Tipper Truck (Open Body)", dims: [6700, 2440, 1500], payload: 12000 },
+  "24ft":            { name: "24 ft Truck (Heavy Rigid)", dims: [7315, 2440, 2440], payload: 8000 },
+  "28ft-single":     { name: "28 ft Single Axle", dims: [8530, 2440, 2440], payload: 8500 },
+  "28ft-multi":      { name: "28 ft Multi Axle", dims: [8530, 2440, 2600], payload: 13000 },
+  "32ft-single":     { name: "32 ft Single Axle", dims: [9750, 2440, 2440], payload: 9000 },
+  "32ft-multi":      { name: "32 ft Multi Axle", dims: [9750, 2440, 2600], payload: 16000 },
+  "32ft-highcube":   { name: "32 ft High Cube Multi Axle", dims: [9750, 2600, 2750], payload: 15000 },
+  "40ft-flatbed":    { name: "40 ft Trailer (Flatbed)", dims: [12190, 2440, 2440], payload: 18000 },
+  "40ft-container":  { name: "40 ft Container Truck", dims: [12190, 2440, 2590], payload: 26000 },
+  "40ft-refrigerated":{ name: "40 ft Refrigerated Truck", dims: [12190, 2440, 2590], payload: 26000 }
 };
+
+
 
 const CITIES = ["Mumbai", "Delhi", "Bangalore", "Kolkata", "Chennai", "Hyderabad"];
 

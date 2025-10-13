@@ -185,9 +185,7 @@ class Box:
             (self.length, self.height, self.width),
             (self.length, self.width, self.height),
             (self.width, self.height, self.length),
-            (self.width, self.length, self.height),
-            (self.height, self.length, self.width),
-            (self.height, self.width, self.length),
+
         ]
         seen, unique = set(), []
         for r in rotations:
